@@ -9,28 +9,25 @@
   <form id="step1Form">
     <label>メールアドレス: <input type="email" name="email" required></label><br><br>
     <label>パスワード: <input type="password" name="password" required></label><br><br>
-    <label>パスワード確認: <input type="password" name="passwordConf" required></label><br><br>
-    <button type="submit">次へ</button>
+    <label>ニックネーム: <input type="text" name="name" required></label><br><br>
+    <button type="submit">登録</button>
   </form>
-  <p><a href="/login.html">すでにアカウントをお持ちの方はこちら</a></p>
-
   <script>
-    document.getElementById('step1Form').addEventListener('submit', function(e) {
+    document.getElementById('step1Form').addEventListener('submit', async function(e) {
       e.preventDefault();
       const email = e.target.email.value;
       const password = e.target.password.value;
-      const passwordConf = e.target.passwordConf.value;
+      const name = e.target.name.value;
 
-      if (password !== passwordConf) {
-        alert('パスワードが一致しません');
-        return;
-      }
-
-      // ローカルストレージ or セッションでStep2にデータを渡す
-      sessionStorage.setItem('email', email);
-      sessionStorage.setItem('password', password);
-
-      window.location.href = 'top.html';
+      // PythonバックエンドAPIにPOST
+      await fetch('/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name })
+      }).then(async res => {
+        const data = await res.json();
+        alert(data.message);
+      });
     });
   </script>
 </body>
