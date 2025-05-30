@@ -6,7 +6,7 @@ const supabase = require('../Supabase/Supabase'); // ここでSupabaseを読み�
 app.use(express.json());
 
 app.post('/signup', async (req, res) => {
-  const { email, password, agent } = req.body;
+  const { email, password, agent, name } = req.body; // ← nameを追加
 
   try {
     // Supabase認証
@@ -19,10 +19,10 @@ app.post('/signup', async (req, res) => {
 
     const userId = signUpData?.user?.id;
 
-    // データベースにユーザー情報を追加
+    // データベースにユーザー情報を追加（nameも追加）
     const { error: dbError } = await supabase
       .from('users')
-      .insert([{ email, agent, user_id: userId }]);
+      .insert([{ email, agent, user_id: userId, name }]); // ← nameを追加
 
     if (dbError) throw dbError;
 

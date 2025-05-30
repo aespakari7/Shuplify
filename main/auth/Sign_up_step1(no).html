@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>新規登録 - Step1</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
   <h1>新規登録 Step1</h1>
@@ -10,26 +11,51 @@
     <label>メールアドレス: <input type="email" name="email" required></label><br><br>
     <label>パスワード: <input type="password" name="password" required></label><br><br>
     <label>パスワード確認: <input type="password" name="passwordConf" required></label><br><br>
+    <label>ニックネーム: <input type="text" name="name" required></label><br><br>
     <button type="submit">次へ</button>
   </form>
   <p><a href="/login.html">すでにアカウントをお持ちの方はこちら</a></p>
 
   <script>
-    document.getElementById('step1Form').addEventListener('submit', function(e) {
+    // ここにあなたのSupabaseプロジェクトのURLとanonキーを入力
+    const supabaseUrl = 'https://xxxxxxxx.supabase.co';
+    const supabaseKey = 'your-anon-key';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    document.getElementById('step1Form').addEventListener('submit', async function(e) {
       e.preventDefault();
       const email = e.target.email.value;
       const password = e.target.password.value;
       const passwordConf = e.target.passwordConf.value;
+      const name = e.target.name.value;
 
       if (password !== passwordConf) {
         alert('パスワードが一致しません');
         return;
       }
 
-      // ローカルストレージ or セッションでStep2にデータを渡す
-      sessionStorage.setItem('email', email);
-      sessionStorage.setItem('password', password);
+      // Supabaseでサインアップ
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password
+      });
 
+      if (error) {
+        alert('登録エラー: ' + error.message);
+        return;
+      }
+
+      // usersテーブルに追加（必要なら）
+      const { error: dbError } = await supabase
+        .from('users')
+        .insert([{ email, name, user_id: data.user.id }]);
+
+      if (dbError) {
+        alert('DBエラー: ' + dbError.message);
+        return;
+      }
+
+      alert('登録完了しました！');
       window.location.href = 'top.html';
     });
   </script>
