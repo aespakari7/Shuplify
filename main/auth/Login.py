@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from werkzeug.security import check_password_hash
 from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
+from werkzeug.security import check_password_hash
 import sqlite3
 
 app = Flask(__name__)
