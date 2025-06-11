@@ -7,31 +7,29 @@
 <body>
   <h1>新規登録</h1>
   <form id="step1Form">
-    <label>メールアドレス: <input type="email" name="email" required></label><br><br>
-    <label>パスワード: <input type="password" name="password" required></label><br><br>
-    <label>ニックネーム: <input type="text" name="name" required></label><br><br>
+    <input type="email" name="email" placeholder="メールアドレス" required><br>
+    <input type="password" name="password" placeholder="パスワード" required><br>
+    <input type="text" name="name" placeholder="ニックネーム" required><br>
     <button type="submit">登録</button>
   </form>
-  <script>
-  document.getElementById('step1Form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const email = e.target.email.value;
-    const password = e.target.password.value;
-    const name = e.target.name.value;
 
-    // PythonバックエンドAPIにPOST
-    await fetch('/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name })
-    }).then(async res => {
+  <script>
+    document.getElementById('step1Form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const { email, password, name } = e.target;
+      const res = await fetch('/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.value,
+          password: password.value,
+          name: name.value
+        })
+      });
       const data = await res.json();
       alert(data.message);
-      if (res.ok) {
-        window.location.href = 'top.html';
-      }
+      if (res.ok) window.location.href = 'top.html';
     });
-  });
-</script>
+  </script>
 </body>
 </html>
