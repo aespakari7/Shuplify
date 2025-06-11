@@ -5,7 +5,7 @@ const supabase = require('../Supabase/Supabase');
 app.use(express.json());
 
 app.post('/signup', async (req, res) => {
-  const { email, password, name, agent } = req.body;
+  const { email, password, name } = req.body;
 
   try {
     // Supabase認証：ユーザー作成
