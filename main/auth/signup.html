@@ -4,23 +4,25 @@
 </head>
 <body>
     <h1>サインアップ</h1>
-    <form id="signupform">
+    <form action="/signup/" method="post">
+        {% csrf_token %}
         <p>mail：<br>
-            <input type="email" name="mail" id="mail" required>
+            <input type="email" name="email" id="mail" required>
         </p>
         <p>password：<br>
             <input type="password" name="password" id="password" required>
         </p>
         <p>username：<br>
-            <input type="text" name="username" id="username" required>
+            <input type="text" name="name" id="username" required>
         </p>
         <p>
         <button type="submit" id="signupbutton">signup</button>
         </p>
+        {% if message %}
+        <p>{{ message }}</p>
+        {% endif %}
     </form>
     <p>ログインはこちら</p>
     <a href="../auth/login.html">ログイン</a>
-
-    <script src="signup.js"></script>
 </body>
 </html>
