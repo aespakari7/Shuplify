@@ -41,16 +41,17 @@ def load_user(user_id):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']  # ログインID
-        password = request.form['password']  # パスワード（隠されて入力される）
+        username = request.form['username']
+        password = request.form['password']
 
         user = get_user_by_username(username)
         if user and check_password_hash(user.password_hash, password):
             login_user(user)
-            return redirect(url_for('home'))
+            return redirect(url_for('top')) 
         else:
             flash('ログインに失敗しました。')
-    return render_template('login.html')
+    return render_template('top.html')
+
 
 @app.route('/')
 @login_required
