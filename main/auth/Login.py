@@ -47,10 +47,11 @@ def login():
         user = get_user_by_username(username)
         if user and check_password_hash(user.password_hash, password):
             login_user(user)
-            return redirect(url_for('top')) 
+            return redirect(url_for('top'))  
         else:
             flash('ログインに失敗しました。')
-    return render_template('top.html')
+            return redirect(url_for('login.html'))  
+    return render_template('login.html')  
 
 
 @app.route('/')
@@ -62,7 +63,7 @@ def home():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for('login'))
+    return redirect(url_for('top.html'))
 
 if __name__ == '__main__':
     app.run(debug=True)
