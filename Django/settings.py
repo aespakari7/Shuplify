@@ -25,8 +25,12 @@ SECRET_KEY = 'django-insecure-ph(abdj_-!_=1k2(^r-3q*lflk+ez)7^55c=6gb9#5k&_42rnq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['shuplify-nvgs.onrender.com', 'localhost', '13.228.225.19']
-
+ALLOWED_HOSTS = [
+    'shuplify-nvgs.onrender.com',
+    '13.228.225.19',
+    '18.142.128.26',
+    '54.254.162.138'
+]
 
 # Application definition
 
