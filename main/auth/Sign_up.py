@@ -2,6 +2,21 @@ import requests
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
+# ビューのルーティング
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('signup/', views.signup, name='signup'),
+]
+
+# Shuplify/urls.py
+from django.urls import path, include
+
+urlpatterns = [
+    path('', include('shuplify.urls')),  # ← アプリ名を指定
+]
+
 SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
 SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1NTA5MTksImV4cCI6MjA2MTEyNjkxOX0.l-CxOBeAyh1mYcJYaZR8Jh9NryPFoWPiYwYB0sl4bc0"  # ← 本番運用では.envで管理してください
 SUPABASE_SIGNUP_URL = f"{SUPABASE_URL}/auth/v1/signup"
