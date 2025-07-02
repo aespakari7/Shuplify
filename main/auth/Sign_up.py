@@ -29,7 +29,7 @@ def signup(request):
         )
 
         if auth_response.status_code not in [200, 201]:
-            return render(request, "auth/signup.html", {"message": f"登録エラー：{auth_response.json()}"})
+            return render(request, "templates/auth/signup.html", {"message": f"登録エラー：{auth_response.json()}"})
 
         user_id = auth_response.json().get("user", {}).get("id")
 
@@ -50,8 +50,8 @@ def signup(request):
         )
 
         if insert_response.status_code not in [200, 201]:
-            return render(request, "auth/signup.html", {"message": f"DB保存エラー：{insert_response.json()}"})
+            return render(request, "templates/auth/signup.html", {"message": f"DB保存エラー：{insert_response.json()}"})
 
-        return render(request, "auth/signup.html", {"message": "登録完了しました！"})
+        return render(request, "templates/auth/signup.html", {"message": "登録完了しました！"})
 
-    return render(request, "auth/signup.html")
+    return render(request, "templates/auth/signup.html")
