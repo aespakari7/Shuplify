@@ -1,4 +1,4 @@
-# main/auth/Sign_up.py (修正版)
+# main/auth/Sign_up.py
 
 import requests
 from django.shortcuts import render, redirect # redirect を忘れずにインポート
@@ -17,11 +17,9 @@ def signup(request):
         password = request.POST.get("password")
         name = request.POST.get("name")
 
-        # フォームからの必須項目が空でないか確認 (これは残す)
         if not email or not password or not name:
             return render(request, "auth/signup.html", {"message": "メールアドレス、パスワード、名前は必須です。"})
 
-        # 1. Supabase Auth でユーザー登録
         try:
             auth_response = requests.post(
                 SUPABASE_SIGNUP_URL,
@@ -34,7 +32,6 @@ def signup(request):
                     "password": password
                 }
             )
-            # エラーハンドリングを強化 (これは残す)
             auth_response.raise_for_status()
             auth_data = auth_response.json()
             user_id = auth_data.get("user", {}).get("id")
@@ -49,7 +46,6 @@ def signup(request):
             return render(request, "auth/signup.html", {"message": f"ネットワークエラー：{str(e)}"})
 
 
-        # 2. Supabase の 'users' テーブルに追加
         try:
             insert_response = requests.post(
                 SUPABASE_DB_INSERT_URL,
@@ -63,13 +59,12 @@ def signup(request):
                     "email": email,
                     "name": name,
                     "user_id": user_id,
-                    "password": password # password の保存はそのまま
+                    "password": password
                 }
             )
-            # エラーハンドリングを強化 (これは残す)
             insert_response.raise_for_status()
 
-            # ★★★ ここだけにする！データベース保存が成功したら即座にリダイレクト！ ★★★
+            # ★★★ 登録とDB保存が成功したら、ここからリダイレクトします ★★★
             return redirect('top') 
 
         except requests.exceptions.HTTPError as e:
@@ -78,5 +73,4 @@ def signup(request):
         except requests.exceptions.RequestException as e:
             return render(request, "auth/signup.html", {"message": f"ネットワークエラー：{str(e)}"})
 
-    # POSTリクエストでなかった場合（GETアクセスでフォーム表示時）の処理 (これは残す)
     return render(request, "auth/signup.html")
