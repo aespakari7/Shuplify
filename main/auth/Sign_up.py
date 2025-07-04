@@ -1,14 +1,15 @@
-# main/auth/Sign_up.py
+# main/auth/Sign_up.py (修正版)
+
 import requests
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect # redirect を忘れずにインポート
 from django.views.decorators.csrf import csrf_exempt
 
 SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
-SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1NTA5MTksImV4cCI6MjA2MTEyNjkxOX0.l-CxOBeAyh1mYcJYaZR8Jh9NryPFoWPiYwYB0sl4bc0"  # ← 本番運用では.envで管理してください
+SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1NTA5MTksImV4cCI6MjA2MTEyNjkxOX0.l-CxOBeAyh1mYcJYaZR8Jh9NryPFoWPiYwYB0sl4bc0"
 SUPABASE_SIGNUP_URL = f"{SUPABASE_URL}/auth/v1/signup"
 SUPABASE_DB_INSERT_URL = f"{SUPABASE_URL}/rest/v1/users"
 
-@csrf_exempt  # フォームから直接POSTするなら必要（セキュリティ対策は後で強化）
+@csrf_exempt
 def signup(request):
     message = ""
     if request.method == "POST":
@@ -16,47 +17,66 @@ def signup(request):
         password = request.POST.get("password")
         name = request.POST.get("name")
 
+        # フォームからの必須項目が空でないか確認 (これは残す)
+        if not email or not password or not name:
+            return render(request, "auth/signup.html", {"message": "メールアドレス、パスワード、名前は必須です。"})
 
         # 1. Supabase Auth でユーザー登録
-        auth_response = requests.post(
-            SUPABASE_SIGNUP_URL,
-            headers={
-                "apikey": SUPABASE_API_KEY,
-                "Content-Type": "application/json"
-            },
-            json={
-                "email": email,
-                "password": password
-            }
-        )
+        try:
+            auth_response = requests.post(
+                SUPABASE_SIGNUP_URL,
+                headers={
+                    "apikey": SUPABASE_API_KEY,
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "email": email,
+                    "password": password
+                }
+            )
+            # エラーハンドリングを強化 (これは残す)
+            auth_response.raise_for_status()
+            auth_data = auth_response.json()
+            user_id = auth_data.get("user", {}).get("id")
 
-        if auth_response.status_code not in [200, 201]:
-            return render(request, "auth/signup.html", {"message": f"登録エラー：{auth_response.json()}"})
+            if not user_id:
+                return render(request, "auth/signup.html", {"message": "ユーザーIDの取得に失敗しました。Supabase Authのレスポンスを確認してください。"})
 
-        user_id = auth_response.json().get("user", {}).get("id")
+        except requests.exceptions.HTTPError as e:
+            error_details = e.response.json().get("msg", str(e))
+            return render(request, "auth/signup.html", {"message": f"ユーザー登録エラー：{error_details}"})
+        except requests.exceptions.RequestException as e:
+            return render(request, "auth/signup.html", {"message": f"ネットワークエラー：{str(e)}"})
+
 
         # 2. Supabase の 'users' テーブルに追加
-        insert_response = requests.post(
-            SUPABASE_DB_INSERT_URL,
-            headers={
-                "apikey": SUPABASE_API_KEY,
-                "Authorization": f"Bearer {SUPABASE_API_KEY}",  # ← anonキーでOK
-                "Content-Type": "application/json",
-                "Prefer": "return=representation"
-            },
-            json={
-                "email": email,
-                "name": name,
-                "user_id": user_id,
-                "password": password
-            }
-        )
+        try:
+            insert_response = requests.post(
+                SUPABASE_DB_INSERT_URL,
+                headers={
+                    "apikey": SUPABASE_API_KEY,
+                    "Authorization": f"Bearer {SUPABASE_API_KEY}",
+                    "Content-Type": "application/json",
+                    "Prefer": "return=representation"
+                },
+                json={
+                    "email": email,
+                    "name": name,
+                    "user_id": user_id,
+                    "password": password # password の保存はそのまま
+                }
+            )
+            # エラーハンドリングを強化 (これは残す)
+            insert_response.raise_for_status()
 
-        if insert_response.status_code not in [200, 201]:
-            return render(request, "auth/signup.html", {"message": f"DB保存エラー：{insert_response.json()}"})
+            # ★★★ ここだけにする！データベース保存が成功したら即座にリダイレクト！ ★★★
+            return redirect('top') 
 
-        return render(request, "auth/signup.html", {"message": "登録完了しました！"})
+        except requests.exceptions.HTTPError as e:
+            error_details = e.response.json().get("message", str(e))
+            return render(request, "auth/signup.html", {"message": f"DB保存エラー：{error_details}"})
+        except requests.exceptions.RequestException as e:
+            return render(request, "auth/signup.html", {"message": f"ネットワークエラー：{str(e)}"})
 
-        return redirect('top') 
-    
+    # POSTリクエストでなかった場合（GETアクセスでフォーム表示時）の処理 (これは残す)
     return render(request, "auth/signup.html")
