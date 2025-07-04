@@ -57,4 +57,6 @@ def signup(request):
 
         return render(request, "auth/signup.html", {"message": "登録完了しました！"})
 
+        return redirect('top') 
+    
     return render(request, "auth/signup.html")
