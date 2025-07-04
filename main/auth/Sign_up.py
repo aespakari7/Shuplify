@@ -19,7 +19,8 @@ def signup(request):
 
         if not email or not password or not name:
             return render(request, "auth/signup.html", {"message": "メールアドレス、パスワード、名前は必須です。"})
-
+        
+        # 1. Supabase Auth でユーザー登録
         try:
             auth_response = requests.post(
                 SUPABASE_SIGNUP_URL,
@@ -32,9 +33,16 @@ def signup(request):
                     "password": password
                 }
             )
+
             auth_response.raise_for_status()
+
+            # ★★★ ここにデバッグ用のコードを追加 ★★★
+            print(f"Supabase Auth Response Status Code: {auth_response.status_code}")
             auth_data = auth_response.json()
+            print(f"Supabase Auth Response JSON: {auth_data}") # ★ここが重要★
+
             user_id = auth_data.get("user", {}).get("id")
+            print(f"Extracted User ID: {user_id}") # ★これも重要★
 
             if not user_id:
                 return render(request, "auth/signup.html", {"message": "ユーザーIDの取得に失敗しました。Supabase Authのレスポンスを確認してください。"})
