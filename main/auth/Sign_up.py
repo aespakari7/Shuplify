@@ -1,5 +1,6 @@
+# main/auth/Sign_up.py
 import requests
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
 SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
@@ -14,6 +15,7 @@ def signup(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
         name = request.POST.get("name")
+
 
         # 1. Supabase Auth でユーザー登録
         auth_response = requests.post(
