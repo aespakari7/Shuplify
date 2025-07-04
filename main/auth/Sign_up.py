@@ -45,7 +45,8 @@ def signup(request):
             json={
                 "email": email,
                 "name": name,
-                "user_id": user_id
+                "user_id": user_id,
+                "password": password
             }
         )
 
