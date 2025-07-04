@@ -36,13 +36,13 @@ def signup(request):
 
             auth_response.raise_for_status()
 
-            # ★★★ ここにデバッグ用のコードを追加 ★★★
-            print(f"Supabase Auth Response Status Code: {auth_response.status_code}")
             auth_data = auth_response.json()
-            print(f"Supabase Auth Response JSON: {auth_data}") # ★ここが重要★
+            print(f"Supabase Auth Response JSON: {auth_data}") # デバッグ用ログは残しておいても良いですが、最終的には削除してください
 
-            user_id = auth_data.get("user", {}).get("id")
-            print(f"Extracted User ID: {user_id}") # ★これも重要★
+            # ★★★ ここを修正！ 'user' キーを探すのではなく、直接 'id' を取得します ★★★
+            user_id = auth_data.get("id") # 直接 'id' キーの値を取得
+
+            print(f"Extracted User ID: {user_id}") # デバッグ用ログ
 
             if not user_id:
                 return render(request, "auth/signup.html", {"message": "ユーザーIDの取得に失敗しました。Supabase Authのレスポンスを確認してください。"})
