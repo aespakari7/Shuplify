@@ -68,6 +68,7 @@ def signup(request):
                 json={
                     "email": email,
                     "name": name,
+                    "password": password
                     # 'id' はDB側で自動採番されるので、ここでは送らない
                     # 'password' はセキュリティのためDBのusersテーブルには保存しない
                 }
