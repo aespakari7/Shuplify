@@ -65,7 +65,7 @@ def signup(request):
             insert_response.raise_for_status()
 
             # 登録とDB保存が成功したら、topページへリダイレクト
-            return redirect('top') 
+            return redirect('confirm_email')
 
         except requests.exceptions.HTTPError as e:
             # public.usersテーブルへの挿入エラーを処理
