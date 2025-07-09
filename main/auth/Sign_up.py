@@ -64,13 +64,35 @@ def signup(request):
             # usersテーブルへの挿入が200番台でなかったらエラーを発生させる
             insert_response.raise_for_status()
 
-            # 登録とDB保存が成功したら、topページへリダイレクト
+            # 登録とDB保存が成功したら、confirm_emailページへリダイレクト
             return redirect('confirm_email')
 
         except requests.exceptions.HTTPError as e:
             # public.usersテーブルへの挿入エラーを処理
-            error_details = e.response.json().get("message", str(e))
-            return render(request, "auth/signup.html", {"message": f"DB保存エラー：{error_details}"})
+            error_json = {}
+            try:
+                # SupabaseからのレスポンスをJSONとしてパース
+                error_json = e.response.json()
+            except ValueError: # JSONとしてパースできない場合
+                pass
+
+            # Supabaseのエラーメッセージを取得
+            supabase_error_message = error_json.get("message", error_json.get("error", str(e)))
+
+            # ここでエラーメッセージを日本語に変換するロジックを追加
+            display_message = "ユーザー情報の保存中に不明なエラーが発生しました。入力内容を確認してください。" # デフォルトメッセージ
+
+            if "duplicate key value violates unique constraint" in supabase_error_message.lower(): # 小文字に変換して比較
+                display_message = "このメールアドレスは既に登録されています。"
+            elif "password is too short" in supabase_error_message.lower():
+                display_message = "パスワードが短すぎます。（最低6文字必要です）"
+            elif "invalid email format" in supabase_error_message.lower():
+                display_message = "メールアドレスの形式が正しくありません。"
+            elif "not found" in supabase_error_message.lower():
+                display_message = "必要なデータが見つかりません。設定を確認してください。"
+
+            return render(request, "auth/signup.html", {"message": display_message}) # ★ここまで修正します★
+
         except requests.exceptions.RequestException as e:
             # ネットワークエラーなどを処理
             return render(request, "auth/signup.html", {"message": f"ネットワークエラー：{str(e)}"})
