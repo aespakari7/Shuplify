@@ -9,6 +9,44 @@ SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 SUPABASE_SIGNUP_URL = f"{SUPABASE_URL}/auth/v1/signup"
 SUPABASE_DB_INSERT_URL = f"{SUPABASE_URL}/rest/v1/users" # public.users テーブルへのURL
 
+# エラーメッセージ
+def get_translated_error_message(e, is_auth_error=True):
+    error_json = {}
+    try:
+        error_json = e.response.json()
+    except ValueError:
+        pass
+
+    # SupabaseAuthからエラーメッセージを取得
+    if is_auth_error:
+        supabase_error_message = error_json.get("msg", error_json.get("message", error_json.get("error", str(e))))
+    else: # DBエラーの場合
+        supabase_error_message = error_json.get("message", error_json.get("error", str(e)))
+        
+    supabase_error_message_lower = str(supabase_error_message).lower()
+
+    display_message = "不明なエラーが発生しました。入力内容を確認してください。"
+
+    # 日本語変換ロジック
+    if "duplicate key value violates unique constraint" in supabase_error_message_lower or \
+       "user already registered" in supabase_error_message_lower:
+        display_message = "このメールアドレスは既に登録されています。"
+    elif "password should be at least 6 characters" in supabase_error_message_lower or \
+         "password is too short" in supabase_error_message_lower:
+        display_message = "パスワードが短すぎます。（最低6文字必要です）"
+    elif "invalid email format" in supabase_error_message_lower or \
+         "is invalid" in supabase_error_message_lower:
+        display_message = "メールアドレスの形式が正しくありません。"
+    elif "not found" in supabase_error_message_lower:
+        # AuthとDBどちらのコンテキストかによってメッセージを調整
+        if is_auth_error:
+            display_message = "ユーザー登録に必要な情報が見つかりません。設定を確認してください。"
+        else:
+            display_message = "必要なデータが見つかりません。設定を確認してください。"
+    # その他の共通エラーがあればここに追加
+
+    return display_message
+
 @csrf_exempt
 def signup(request):
     message = ""
@@ -37,9 +75,9 @@ def signup(request):
             auth_response.raise_for_status()
 
         except requests.exceptions.HTTPError as e:
-            # Supabase Authからのエラーレスポンスを処理
-            error_details = e.response.json().get("msg", str(e))
-            return render(request, "auth/signup.html", {"message": f"ユーザー登録エラー：{error_details}"})
+            # Authエラーにも日本語変換ロジックを適用
+            display_message = get_translated_error_message(e, is_auth_error=True)
+            return render(request, "auth/signup.html", {"message": f"ユーザー登録エラー：{display_message}"})
         except requests.exceptions.RequestException as e:
             # ネットワークエラーなどを処理
             return render(request, "auth/signup.html", {"message": f"ネットワークエラー：{str(e)}"})
@@ -62,38 +100,12 @@ def signup(request):
                 }
             )
             # usersテーブルへの挿入が200番台でなかったらエラーを発生させる
-            insert_response.raise_for_status()
-
-            # 登録とDB保存が成功したら、confirm_emailページへリダイレクト
             return redirect('confirm_email')
 
         except requests.exceptions.HTTPError as e:
-            # public.usersテーブルへの挿入エラーを処理
-            error_json = {}
-            try:
-                # SupabaseからのレスポンスをJSONとしてパース
-                error_json = e.response.json()
-            except ValueError: # JSONとしてパースできない場合
-                pass
-
-            # Supabaseのエラーメッセージを取得
-            supabase_error_message = error_json.get("message", error_json.get("error", str(e)))
-            supabase_error_message_lower = str(supabase_error_message).lower()#後で消す
-
-            # ここでエラーメッセージを日本語に変換するロジックを追加
-            display_message = "ユーザー情報の保存中に不明なエラーが発生しました。入力内容を確認してください。" # デフォルトメッセージ
-
-            if "duplicate key value violates unique constraint" in supabase_error_message.lower(): # 小文字に変換して比較
-                display_message = "このメールアドレスは既に登録されています。"
-            elif "password is too short" in supabase_error_message_lower:
-                display_message = "パスワードが短すぎます。（最低6文字必要です）"
-            elif "invalid email format" in supabase_error_message_lower:
-                display_message = "メールアドレスの形式が正しくありません。"
-            elif "not found" in supabase_error_message_lower: # テーブル名の間違いや、アクセス権がない場合など
-                display_message = "必要なデータが見つかりません。設定を確認してください。"
-
+            # ★修正箇所：DB保存エラーにも日本語変換ロジックを適用（関数呼び出しに）★
+            display_message = get_translated_error_message(e, is_auth_error=False)
             return render(request, "auth/signup.html", {"message": f"DB保存エラー：{display_message}"})
-
         except requests.exceptions.RequestException as e:
             # ネットワークエラーなどを処理
             return render(request, "auth/signup.html", {"message": f"ネットワークエラー：{str(e)}"})
