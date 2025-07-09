@@ -9,7 +9,7 @@ SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 SUPABASE_SIGNUP_URL = f"{SUPABASE_URL}/auth/v1/signup"
 SUPABASE_DB_INSERT_URL = f"{SUPABASE_URL}/rest/v1/users" # public.users テーブルへのURL
 
-# エラーメッセージ
+# エラーメッセージを日本語に変換するロジック関数
 def get_translated_error_message(e, is_auth_error=True):
     error_json = {}
     try:
@@ -17,7 +17,7 @@ def get_translated_error_message(e, is_auth_error=True):
     except ValueError:
         pass
 
-    # SupabaseAuthからエラーメッセージを取得
+    # Supabaseからのエラーメッセージを取得
     if is_auth_error:
         supabase_error_message = error_json.get("msg", error_json.get("message", error_json.get("error", str(e))))
     else: # DBエラーの場合
@@ -28,23 +28,29 @@ def get_translated_error_message(e, is_auth_error=True):
     display_message = "不明なエラーが発生しました。入力内容を確認してください。"
 
     # 日本語変換ロジック
-    if "duplicate key value violates unique constraint" in supabase_error_message_lower or \
-       "user already registered" in supabase_error_message_lower:
-        display_message = "このメールアドレスは既に登録されています。"
-    elif "password should be at least 6 characters" in supabase_error_message_lower or \
-         "password is too short" in supabase_error_message_lower:
-        display_message = "パスワードが短すぎます。（最低6文字必要です）"
-    elif "invalid email format" in supabase_error_message_lower or \
-         "is invalid" in supabase_error_message_lower:
-        display_message = "メールアドレスの形式が正しくありません。"
-    elif "not found" in supabase_error_message_lower:
-        # AuthとDBどちらのコンテキストかによってメッセージを調整
-        if is_auth_error:
+    if is_auth_error:
+        # メッセージ
+        if "user already registered" in supabase_error_message_lower:
+            display_message = "このメールアドレスは既に登録されています。"
+        elif "password should be at least 6 characters" in supabase_error_message_lower or \
+             "password is too short" in supabase_error_message_lower:
+            display_message = "パスワードが短すぎます。（最低6文字必要です）"
+        elif "invalid email format" in supabase_error_message_lower or \
+             "is invalid" in supabase_error_message_lower:
+            display_message = "メールアドレスの形式が正しくありません。"
+        elif "not found" in supabase_error_message_lower:
             display_message = "ユーザー登録に必要な情報が見つかりません。設定を確認してください。"
-        else:
+        # その他のAuthエラーがあればここに追加
+    else:
+        # DBエラー固有のメッセージハンドリング
+        if "duplicate key value violates unique constraint" in supabase_error_message_lower:
+            display_message = "このメールアドレスは既に登録されています。" # DB側での重複エラー
+        elif "not found" in supabase_error_message_lower:
             display_message = "必要なデータが見つかりません。設定を確認してください。"
-    # その他の共通エラーがあればここに追加
-
+        elif "permission denied" in supabase_error_message_lower:
+            display_message = "データベースへのアクセス権がありません。APIキーまたはポリシーを確認してください。"
+        # その他のDBエラーがあればここに追加
+    
     return display_message
 
 @csrf_exempt
