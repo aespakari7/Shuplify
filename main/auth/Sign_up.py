@@ -30,9 +30,7 @@ def get_translated_error_message(e, is_auth_error=True):
     # 日本語変換ロジック
     if is_auth_error:
         # メッセージ
-        if "duplicate key value violates unique constraint" in supabase_error_message_lower(): # 小文字に変換して比較
-                display_message = "このメールアドレスは既に登録されています。"
-        elif "password should be at least 6 characters" in supabase_error_message_lower or \
+        if "password should be at least 6 characters" in supabase_error_message_lower or \
              "password is too short" in supabase_error_message_lower:
             display_message = "パスワードが短すぎます。（最低6文字必要です）"
         elif "invalid email format" in supabase_error_message_lower or \
@@ -79,6 +77,24 @@ def signup(request):
             )
             # Authへのリクエストが200番台でなかったらエラーを発生させる
             auth_response.raise_for_status()
+
+# Auth認証が成功した場合でも、public.usersテーブルに既にメールアドレスが存在するかチェック
+            # これは、Supabase Authが既存ユーザーのサインアップ試行時にエラーを返さないセキュリティ挙動に対応するため
+            check_db_url = f"{SUPABASE_URL}/rest/v1/users?email=eq.{email}"
+            check_db_response = requests.get(
+                check_db_url,
+                headers={
+                    "apikey": SUPABASE_API_KEY,
+                    "Authorization": f"Bearer {SUPABASE_API_KEY}",
+                    "Content-Type": "application/json"
+                }
+            )
+            check_db_response.raise_for_status()
+            existing_users = check_db_response.json()
+
+            if existing_users:
+                # public.usersテーブルに既にこのメールアドレスが存在する場合
+                return render(request, "auth/signup.html", {"message": "ユーザー登録エラー：このメールアドレスは既に登録されています。"})
 
         except requests.exceptions.HTTPError as e:
             # Authエラーにも日本語変換ロジックを適用
