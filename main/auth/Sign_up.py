@@ -78,20 +78,21 @@ def signup(request):
 
             # Supabaseのエラーメッセージを取得
             supabase_error_message = error_json.get("message", error_json.get("error", str(e)))
+            supabase_error_message_lower = str(supabase_error_message).lower()#後で消す
 
             # ここでエラーメッセージを日本語に変換するロジックを追加
             display_message = "ユーザー情報の保存中に不明なエラーが発生しました。入力内容を確認してください。" # デフォルトメッセージ
 
             if "duplicate key value violates unique constraint" in supabase_error_message.lower(): # 小文字に変換して比較
                 display_message = "このメールアドレスは既に登録されています。"
-            elif "password is too short" in supabase_error_message.lower():
+            elif "password is too short" in supabase_error_message_lower:
                 display_message = "パスワードが短すぎます。（最低6文字必要です）"
-            elif "invalid email format" in supabase_error_message.lower():
+            elif "invalid email format" in supabase_error_message_lower:
                 display_message = "メールアドレスの形式が正しくありません。"
-            elif "not found" in supabase_error_message.lower():
+            elif "not found" in supabase_error_message_lower: # テーブル名の間違いや、アクセス権がない場合など
                 display_message = "必要なデータが見つかりません。設定を確認してください。"
 
-            return render(request, "auth/signup.html", {"message": display_message}) # ★ここまで修正します★
+            return render(request, "auth/signup.html", {"message": f"DB保存エラー：{display_message}"})
 
         except requests.exceptions.RequestException as e:
             # ネットワークエラーなどを処理
