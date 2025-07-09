@@ -7,7 +7,7 @@ SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 SUPABASE_SIGNUP_URL = f"{SUPABASE_URL}/auth/v1/signup"
 SUPABASE_DB_INSERT_URL = f"{SUPABASE_URL}/rest/v1/users"
 
-@csrf_exempt  # フォームから直接POSTするなら必要（セキュリティ対策は後で強化）
+@csrf_exempt 
 def signup(request):
     message = ""
     if request.method == "POST":
@@ -15,7 +15,7 @@ def signup(request):
         password = request.POST.get("password")
         name = request.POST.get("name")
 
-        # 1. Supabase Auth でユーザー登録
+       
         auth_response = requests.post(
             SUPABASE_SIGNUP_URL,
             headers={
@@ -52,6 +52,6 @@ def signup(request):
         if insert_response.status_code not in [200, 201]:
             return render(request, "auth/signup.html", {"message": f"DB保存エラー：{insert_response.json()}"})
 
-        return render(request, "auth/signup.html", {"message": "登録完了しました！"})
+        return render(request, "signup.html", {"message": "登録完了しました！"})
 
     return render(request, "auth/signup.html")

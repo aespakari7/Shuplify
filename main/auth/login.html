@@ -5,52 +5,24 @@
     <title>ログイン</title>
   </head>
   <body>
-    <h1>ログイン</h1>
-    <form action="top.html" method="post">
+    <img src="shuplify.png" />
+    <h1>登録して就活を有利に!</h1>
+
+    <form method="post" action="top.html">
       <p>
         メールアドレス<br />
-        <input type="email" name="username" required />
+        <input type="email" name="email" required />
       </p>
       <p>
         パスワード<br />
         <input type="password" name="password" required />
       </p>
       <p>
-        <input type="submit" value="ログイン" />
+        <button type="submit">ログイン</button>
       </p>
     </form>
-    <p>新規登録はこちら</p>
+
+    <p>アカウントをお持ちではない場合は</p>
     <a href="signup.html">新規登録</a>
   </body>
-</html>
-
-<script>
-    const supabaseUrl = 'https://xxxxx.supabase.co';
-    const supabaseKey = 'public-anon-key';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-    document.getElementById('login-form').addEventListener('submit', async function (e) {
-      e.preventDefault(); 
-
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
-
-      const msg = document.getElementById('message');
-      if (error) {
-        msg.textContent = 'ログインに失敗しました: ' + error.message;
-        msg.style.color = 'red';
-      } else {
-        msg.textContent = 'ログイン成功！';
-        msg.style.color = 'green';
-      
-        window.location.href = 'top.html';
-      }
-    });
-  </script>
-</body>
 </html>
