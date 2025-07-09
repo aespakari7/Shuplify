@@ -30,8 +30,8 @@ def get_translated_error_message(e, is_auth_error=True):
     # 日本語変換ロジック
     if is_auth_error:
         # メッセージ
-        if "user already registered" in supabase_error_message_lower:
-            display_message = "このメールアドレスは既に登録されています。"
+        if "duplicate key value violates unique constraint" in supabase_error_message_lower(): # 小文字に変換して比較
+                display_message = "このメールアドレスは既に登録されています。"
         elif "password should be at least 6 characters" in supabase_error_message_lower or \
              "password is too short" in supabase_error_message_lower:
             display_message = "パスワードが短すぎます。（最低6文字必要です）"
