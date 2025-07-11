@@ -7,7 +7,7 @@ from datetime import date
 from .models import CalendarEvent 
 
 @login_required 
-def top_page_view(request):
+def top(request):
     """
     ユーザーのTOPページを表示し、今日のタスクをデータベースから取得して渡すビュー
     """
