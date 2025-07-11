@@ -1,8 +1,56 @@
 <!DOCTYPE html>
+<html lang="ja">
 <head>
-  <title>top</title>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザーTOPページ</title>
+    </head>
 <body>
-    <h1>TOP</h1>
+    <div class="user-dashboard">
+        <div class="header">
+            <h1>管理項目</h1>
+        </div>
+        <div class="task-section">
+            <h2>今日のタスク</h2>
+            <ul id="today-tasks-list">
+                <li>タスクを読み込み中...</li>
+            </ul>
+        </div>
+
+        <div class="management-items">
+            <a href="/profile/">
+                <img src="/static/images/profile-icon.png" alt="プロフィール">
+                <p>プロフィール</p>
+            </a>
+            <a href="/chat/">
+                <img src="/static/images/ai-chat-icon.png" alt="AIチャット">
+                <p>AIチャット</p>
+            </a>
+            <a href="/self-analysis/">
+                <img src="/static/images/self-analysis-icon.png" alt="自己分析">
+                <p>自己分析</p>
+            </a>
+            <a href="/calendar-detail/">
+                <img src="/static/images/calendar-icon.png" alt="カレンダー">
+                <p>カレンダー</p>
+            </a>
+            <a href="/es-edit/">
+                <img src="/static/images/es-edit-icon.png" alt="ES添削">
+                <p>ES添削</p>
+            </a>
+            <a href="/company-analysis/">
+                <img src="/static/images/company-analysis-icon.png" alt="企業分析">
+                <p>企業分析</p>
+            </a>
+            <a href="/mail-edit/">
+                <img src="/static/images/mail-edit-icon.png" alt="メール添削">
+                <p>メール添削</p>
+            </a>
+            <a href="/company-manage/">
+                <img src="/static/images/company-manage-icon.png" alt="企業管理">
+                <p>企業管理</p>
+            </a>
+        </div>
+    </div>
 </body>
 </html>
