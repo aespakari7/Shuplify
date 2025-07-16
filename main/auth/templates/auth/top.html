@@ -7,13 +7,23 @@
     </head>
 <body>
     <div class="user-dashboard">
+
         <div class="header">
             <h1>管理項目</h1>
         </div>
+
         <div class="task-section">
             <h2>今日のタスク</h2>
             <ul id="today-tasks-list">
-                <li>タスクを読み込み中...</li>
+                {% if today_tasks %}
+                    {% for event in today_tasks %}
+                        <li>{{ event.title }} - {{ event.start_time|date:"H:i" }}</li>
+                    {% empty %}
+                        <li>今日のタスクはありません。</li>
+                    {% endfor %}
+                {% else %}
+                    <li>今日のタスクはありません。</li>
+                {% endif %}
             </ul>
         </div>
 
