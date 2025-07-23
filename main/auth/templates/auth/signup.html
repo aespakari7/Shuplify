@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<head>
+  <title>signup</title>
+</head>
+<body>
+    <h1>サインアップ</h1>
+    <form action="{% url 'signup' %}" method="post">
+        {% csrf_token %}
+        <p>mail：<br>
+            <input type="email" name="email" id="mail" required>
+        </p>
+        <p>password：<br>
+            <input type="password" name="password" id="password" required>
+        </p>
+        <p>username：<br>
+            <input type="text" name="name" id="username" required>
+        </p>
+        <p>
+        <button type="submit" id="signupbutton">signup</button>
+        </p>
+        {% if message %}
+        <p>{{ message }}</p>
+        {% endif %}
+    </form>
+    <p>ログインはこちら</p>
+    <a href="/auth/login/">ログイン</a>
+</body>
+</html>

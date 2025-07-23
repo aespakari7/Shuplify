@@ -1,20 +1,56 @@
 <!DOCTYPE html>
-<head>
-<title>login</title>
-</head>
-<body>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ログイン</title>
+  </head>
+  <body>
     <h1>ログイン</h1>
-    <form action="" method="post">
-        <p>mail：<br>
-            <input type="email" name = "mail">
-        </p>
-        <p>password：<br>
-            <input type="password" name = "password">
-        </p>
-        <P>
-        <input type="button" value="login" id="loginbutton">
-        </P>
+    <form action="top.html" method="post">
+      <p>
+        メールアドレス<br />
+        <input type="email" name="username" required />
+      </p>
+      <p>
+        パスワード<br />
+        <input type="password" name="password" required />
+      </p>
+      <p>
+        <input type="submit" value="ログイン" />
+      </p>
     </form>
     <p>新規登録はこちら</p>
-    <a href="../auth/signup.html" value="新規登録" ></a>
+    <a href="signup.html">新規登録</a>
+  </body>
+</html>
+
+<script>
+    const supabaseUrl = 'https://xxxxx.supabase.co';
+    const supabaseKey = 'public-anon-key';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    document.getElementById('login-form').addEventListener('submit', async function (e) {
+      e.preventDefault(); 
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      const msg = document.getElementById('message');
+      if (error) {
+        msg.textContent = 'ログインに失敗しました: ' + error.message;
+        msg.style.color = 'red';
+      } else {
+        msg.textContent = 'ログイン成功！';
+        msg.style.color = 'green';
+      
+        window.location.href = 'top.html';
+      }
+    });
+  </script>
 </body>
+</html>
