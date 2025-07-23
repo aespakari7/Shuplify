@@ -1,0 +1,23 @@
+# .gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+env/
+venv/
+*.env
+pip-log.txt
+pip-delete-this-arg.txt
+
+# Django
+*.sqlite3
+.DS_Store # macOS 用
+
+# AI API keys
+.env # これが重要です！
+
+# Render specific
+.render/
