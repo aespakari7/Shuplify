@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIチャット</title>
+</head>
+<body>
+    <div id="chat-window">
+        <div>Gemini: こんにちは！何かお手伝いできることはありますか？</div>
+    </div>
+
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="メッセージを入力してください...">
+        <button id="send-button">送信</button>
+    </div>
+
+    <script>
+        // HTML要素への参照を取得
+        const sendButton = document.getElementById('send-button');
+        const userInput = document.getElementById('user-input');
+        const chatWindow = document.getElementById('chat-window');
+
+        // イベントリスナーの追加
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        /**
+         * メッセージを送信し、チャットウィンドウに表示する関数
+         */
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+
+            // ユーザーメッセージをチャットウィンドウに表示
+            appendMessage('あなた: ' + message);
+
+            userInput.value = ''; // 入力フィールドをクリア
+            chatWindow.scrollTop = chatWindow.scrollHeight; // スクロールを一番下へ
+
+            // Djangoのバックエンド（AIchatビュー）へメッセージを送信
+            fetch('/auth/aichat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        const errorMessage = err.error || '不明なサーバーエラーが発生しました。';
+                        throw new Error(errorMessage);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Geminiからの応答をチャットウィンドウに表示
+                if (data.response) {
+                    appendMessage('Gemini: ' + data.response);
+                } else {
+                    appendMessage('エラー: AIからの応答がありませんでした。');
+                }
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            })
+            .catch(error => {
+                console.error('通信エラー:', error);
+                appendMessage(`エラーが発生しました: ${error.message || '接続に失敗しました'}`);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            });
+        }
+
+        /**
+         * メッセージをチャットウィンドウに追加するヘルパー関数
+         * @param {string} text - 表示するメッセージテキスト
+         */
+        function appendMessage(text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = text;
+            chatWindow.appendChild(messageDiv);
+        }
+    </script>
+</body>
+</html>

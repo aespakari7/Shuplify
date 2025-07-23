@@ -36,7 +36,7 @@ def top(request):
     context = {
         'today_tasks': today_events,
         'profile_url': '/profile/', # 仮のURL、実際のURLパスに合わせて修正してください
-        'chat_url': '/chat/',
+        'chat_url': '/AIchat/',
         'self_analysis_url': '/self-analysis/',
         'calendar_detail_url': '/calendar-detail/',
         'es_edit_url': '/es-edit/',
