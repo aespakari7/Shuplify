@@ -60,3 +60,14 @@
     </script>
 </body>
 </html>
+
+<script>
+    //AIの生成する文章を改行や箇条書きで見やすくするための変更
+
+    function appendMessage(text) {
+        const messageDiv = document.createElement('div');
+        // ★ここをtextContentからinnerHTMLに変更
+        messageDiv.innerHTML = text; 
+        chatWindow.appendChild(messageDiv);
+    }
+</script>
