@@ -1,4 +1,4 @@
-# C:\main\auth\ai_es.py
+# C:\main\auth\AI_ES.py
 
 import os
 import json
@@ -38,13 +38,13 @@ def aies(request):
         if request.method == 'POST':
             return JsonResponse({"error": error_message}, status=500)
         else:
-            return render(request, 'auth/ai_es.html', {'error': error_message})
+            return render(request, 'auth/AI_ES.html', {'error': error_message})
 
     genai.configure(api_key=API_KEY)
     chat_history = request.session.get('chat_history_es', [])
 
     if request.method == 'GET':
-        return render(request, 'auth/ai_es.html', {'chat_history': chat_history})
+        return render(request, 'auth/AI_ES.html', {'chat_history': chat_history})
 
     elif request.method == 'POST':
         try:
