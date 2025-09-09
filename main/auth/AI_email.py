@@ -1,4 +1,4 @@
-# C:\main\auth\ai_email.py
+# C:\main\auth\AI_email.py
 
 import os
 import json
@@ -38,13 +38,13 @@ def aiemail(request):
         if request.method == 'POST':
             return JsonResponse({"error": error_message}, status=500)
         else:
-            return render(request, 'auth/ai_email.html', {'error': error_message})
+            return render(request, 'auth/AI_email.html', {'error': error_message})
 
     genai.configure(api_key=API_KEY)
     chat_history = request.session.get('chat_history_email', [])
 
     if request.method == 'GET':
-        return render(request, 'auth/ai_email.html', {'chat_history': chat_history})
+        return render(request, 'auth/AI_email.html', {'chat_history': chat_history})
 
     elif request.method == 'POST':
         try:
