@@ -3,76 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIチャット</title>
+    <title>ES添削AI</title>
 </head>
 <body>
+    <h1>ES添削AI</h1>
     <div id="chat-window">
-        {% if not chat_history %}
-            <div>Gemini: こんにちは！何かお手伝いできることはありますか？</div>
-        {% else %}
-            {% for message in chat_history %}
-                <div>
-                    {% if message.role == 'user' %}
-                        あなた: {{ message.parts.0 }}
-                    {% else %}
-                        Gemini: {{ message.parts.0 }}
-                    {% endif %}
-                </div>
-            {% endfor %}
-        {% endif %}
+        <div>Gemini: こんにちは！ESの添削をお手伝いします。自己PRや志望動機を入力してください。</div>
     </div>
-
     <div id="input-area">
-        <input type="text" id="user-input" placeholder="メッセージを入力してください...">
+        <input type="text" id="user-input" placeholder="ESの文章を入力してください...">
         <button id="send-button">送信</button>
     </div>
-
-
     <script>
-        // このスクリプトは送信を押したときにページがリダイレクトせずに済むようにする
-        // fetch APIを使ってDjangoのバックエンドにメッセージを送信し、応答を受け取る
-
         const sendButton = document.getElementById('send-button');
         const userInput = document.getElementById('user-input');
         const chatWindow = document.getElementById('chat-window');
-
         sendButton.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
-
         function sendMessage() {
             const message = userInput.value.trim();
             if (message === '') return;
-
-            // ユーザーメッセージをチャットウィンドウに表示
             appendMessage('あなた: ' + message);
-
             userInput.value = '';
             chatWindow.scrollTop = chatWindow.scrollHeight;
-
-            // Djangoのバックエンド（AIchatビュー）へメッセージを送信
-            // URLは '/main/auth/aichat/' に修正済み
-            fetch('/auth/aichat/', {
+            fetch('/auth/es-tutor/', { // ★URLをes-tutorに
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // CSRFトークンをここで渡す必要がある場合は追加
-                    // 現在 @csrf_exempt を使用しているので不要
                 },
                 body: JSON.stringify({ message: message })
             })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => {
-                        const errorMessage = err.error || '不明なサーバーエラーが発生しました。';
-                        throw new Error(errorMessage);
-                    });
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 if (data.response) {
                     appendMessage('Gemini: ' + data.response);
@@ -87,7 +52,6 @@
                 chatWindow.scrollTop = chatWindow.scrollHeight;
             });
         }
-
         function appendMessage(text) {
             const messageDiv = document.createElement('div');
             messageDiv.textContent = text;
