@@ -1,66 +1,46 @@
+# C:\main\auth\AIchat.py
+
 import os
 import json
 import google.generativeai as genai
 from dotenv import load_dotenv
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
-from django.shortcuts import render, redirect # redirect をインポート
-from django.http import HttpResponseServerError, HttpResponseBadRequest
-from django.urls import reverse # URLを逆引きするためにインポート
+from django.shortcuts import render # redirectは不要
+from django.http import JsonResponse, HttpResponseServerError, HttpResponseBadRequest
+from django.views.decorators.csrf import csrf_exempt
 
-# .env ファイルから環境変数を読み込む（プロジェクトのルートディレクトリにある前提）
-load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env'))
+# ... (APIキーやモデルの設定は変更なし)
 
-# 環境変数からAPIキーを取得
-API_KEY = os.getenv("GOOGLE_API_KEY")
-
-if not API_KEY:
-    print("エラー: GOOGLE_API_KEY が環境変数に設定されていません。")
-    print("プロジェクトのルートディレクトリにある .env ファイルを確認してください。")
-
-# Geminiモデルの設定
-generation_config = {
-    "temperature": 0.9,
-    "top_p": 1,
-    "top_k": 1,
-    "max_output_tokens": 2048,
-}
-
-safety_settings = {
-    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-}
-
-# サーバーサイドでのチャット履歴管理
-# Djangoのセッションにチャット履歴を保存するように変更
-# chat_sessions 辞書は不要になります
-# chat_sessions = {} # この行は削除またはコメントアウト
-
-# @csrf_exempt は不要になります（HTMLフォームで {% csrf_token %} を使うため）
+# @csrf_exempt を再追加します
+@csrf_exempt
 def aichat(request):
     # APIキーが設定されていない場合のエラーハンドリング
     if not API_KEY:
-        # Render環境であれば、ログに出力し、管理画面でAPIキーを設定するよう促す
-        error_message = "サーバー設定エラー: GOOGLE_API_KEY が設定されていません。管理者にご連絡ください。"
-        print(f"ERROR: {error_message}") # サーバーログに出力
-        return render(request, 'auth/AIchat.html', {'chat_history': [], 'error': error_message})
-
+        error_message = "サーバー設定エラー: APIキーが設定されていません。"
+        print(f"ERROR: {error_message}")
+        if request.method == 'POST':
+            return JsonResponse({"error": error_message}, status=500)
+        else:
+            return render(request, 'auth/AIchat.html', {'error': error_message})
 
     genai.configure(api_key=API_KEY)
 
-    # Djangoセッションからチャット履歴を取得、なければ初期化
-    # セッションは辞書のように扱える
+    # Djangoセッションからチャット履歴を取得
     chat_history = request.session.get('chat_history', [])
 
-    if request.method == 'POST':
-        user_message = request.POST.get('user_message', '').strip()
+    if request.method == 'GET':
+        # GETリクエストの場合は、チャット画面をレンダリングするだけ
+        return render(request, 'auth/AIchat.html', {'chat_history': chat_history})
 
-        if not user_message:
-            # メッセージが空の場合でも、現在の履歴で再レンダリング
-            return render(request, 'auth/AIchat.html', {'chat_history': chat_history})
-
+    elif request.method == 'POST':
         try:
+            # POSTリクエストはJSONでメッセージを受け取る
+            data = json.loads(request.body)
+            user_message = data.get('message', '').strip()
+
+            if not user_message:
+                return HttpResponseBadRequest("メッセージが提供されていません。")
+
             # ユーザーメッセージを履歴に追加
             chat_history.append({"role": "user", "parts": [user_message]})
 
@@ -70,8 +50,7 @@ def aichat(request):
                 generation_config=generation_config,
                 safety_settings=safety_settings
             )
-            chat = model.start_chat(history=chat_history) # 最新の履歴を渡す
-
+            chat = model.start_chat(history=chat_history)
             response = chat.send_message(user_message)
 
             # Geminiの応答を履歴に追加
@@ -79,23 +58,15 @@ def aichat(request):
 
             # 更新された履歴をセッションに保存
             request.session['chat_history'] = chat_history
-            request.session.modified = True # セッションが変更されたことを明示的にマーク
+            request.session.modified = True
 
-            # POST後にリダイレクト (PRGパターン: Post/Redirect/Get)
-            # これにより、ユーザーがページをリロードしても二重送信を防げる
-            return redirect(reverse('aichat')) # 'aichat'という名前のURLにリダイレクト
+            # JavaScriptに返すためにJSONでレスポンスを返す
+            return JsonResponse({"response": response.text})
 
+        except json.JSONDecodeError:
+            return HttpResponseBadRequest("無効なJSON形式です。")
         except Exception as e:
             print(f"Gemini API 呼び出しエラー: {e}")
-            # エラーメッセージを履歴に追加して表示
-            chat_history.append({"role": "model", "parts": [f"エラーが発生しました: {e}"]})
-            request.session['chat_history'] = chat_history
-            request.session.modified = True
-            # エラーが発生した場合も再レンダリング（リダイレクトではない）
-            return render(request, 'auth/AIchat.html', {'chat_history': chat_history, 'error': f"API呼び出し中にエラー: {e}"})
-
-    elif request.method == 'GET':
-        # GETリクエストの場合、現在の履歴をテンプレートに渡してレンダリング
-        return render(request, 'auth/AIchat.html', {'chat_history': chat_history})
+            return HttpResponseServerError(f"Gemini API 呼び出し中にエラーが発生しました: {e}")
     else:
         return HttpResponseBadRequest("このエンドポイントはGETまたはPOSTリクエストのみをサポートしています。")
