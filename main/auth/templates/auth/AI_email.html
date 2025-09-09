@@ -30,7 +30,7 @@
             appendMessage('あなた: ' + message);
             userInput.value = '';
             chatWindow.scrollTop = chatWindow.scrollHeight;
-            fetch('/auth/email-tutor/', {
+            fetch('/main/auth/email-tutor/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
