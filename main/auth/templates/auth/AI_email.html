@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メール文添削AI</title>
+</head>
+<body>
+    <h1>メール文添削AI</h1>
+    <div id="chat-window">
+        <div>Gemini: こんにちは！メール文の添削をお手伝いします。メールの本文を入力してください。</div>
+    </div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="メール文を入力してください...">
+        <button id="send-button">送信</button>
+    </div>
+    <script>
+        const sendButton = document.getElementById('send-button');
+        const userInput = document.getElementById('user-input');
+        const chatWindow = document.getElementById('chat-window');
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+            appendMessage('あなた: ' + message);
+            userInput.value = '';
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            fetch('/auth/email-tutor/', { // ★URLをemail-tutorに
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.response) {
+                    appendMessage('Gemini: ' + data.response);
+                } else {
+                    appendMessage('エラー: AIからの応答がありませんでした。');
+                }
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            })
+            .catch(error => {
+                console.error('通信エラー:', error);
+                appendMessage(`エラーが発生しました: ${error.message || '接続に失敗しました'}`);
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            });
+        }
+        function appendMessage(text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = text;
+            chatWindow.appendChild(messageDiv);
+        }
+    </script>
+</body>
+</html>
