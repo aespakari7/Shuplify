@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env'))
 
 # メール文添削AI用のシステムプロンプト
-SYSTEM_PROMPT_EMAIL = "あなたはビジネスメールのプロフェッショナルです。ユーザーが作成したメール文を添削し、より丁寧で分かりやすい文章になるように改善案を提案してください。"
+SYSTEM_PROMPT_EMAIL = "あなたはビジネスメールのプロフェッショナルです。ユーザーが作成したメール文を添削し、より丁寧で分かりやすい文章になるように改善案を提案してください。回答はHTMLの<br>タグを使って**適切に改行**し、箇条書きなども活用してください。"
 
 generation_config = {
     "temperature": 0.9,
