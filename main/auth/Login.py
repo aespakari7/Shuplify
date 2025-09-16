@@ -1,69 +1,70 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
-from werkzeug.security import check_password_hash
-import sqlite3
+# main/auth/Login.py
 
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+import requests
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
 
-login_manager = LoginManager()
-login_manager.init_app(app)
+SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
+SUPABASE_API_KEY = ""
+SUPABASE_LOGIN_URL = f"{SUPABASE_URL}/auth/v1/token?grant_type=password"
 
-# ユーザークラス
-class User(UserMixin):
-    def __init__(self, id_, username, password_hash):
-        self.id = id_
-        self.username = username
-        self.password_hash = password_hash
+# エラーメッセージ翻訳
+def get_translated_error_message(e):
+    error_json = {}
+    try:
+        error_json = e.response.json()
+    except ValueError:
+        pass
 
-# DB検索関数
-def get_user_by_username(username):
-    conn = sqlite3.connect('users.db')
-    cur = conn.cursor()
-    cur.execute("SELECT id, username, password FROM users WHERE username = ?", (username,))
-    row = cur.fetchone()
-    conn.close()
-    if row:
-        return User(*row)
-    return None
+    supabase_error_message = error_json.get("msg", error_json.get("message", error_json.get("error", str(e))))
+    supabase_error_message_lower = str(supabase_error_message).lower()
 
-@login_manager.user_loader
-def load_user(user_id):
-    conn = sqlite3.connect('users.db')
-    cur = conn.cursor()
-    cur.execute("SELECT id, username, password FROM users WHERE id = ?", (user_id,))
-    row = cur.fetchone()
-    conn.close()
-    if row:
-        return User(*row)
-    return None
+    display_message = "ログインに失敗しました。入力内容を確認してください。"
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    if "invalid login credentials" in supabase_error_message_lower:
+        display_message = "メールアドレスまたはパスワードが間違っています。"
+    elif "email not confirmed" in supabase_error_message_lower:
+        display_message = "メールアドレスが確認されていません。受信したメールを確認してください。"
+    elif "password" in supabase_error_message_lower:
+        display_message = "パスワードが間違っています。"
+    elif "invalid email" in supabase_error_message_lower:
+        display_message = "メールアドレスの形式が正しくありません。"
 
-        user = get_user_by_username(username)
-        if user and check_password_hash(user.password_hash, password):
-            login_user(user)
-            return redirect(url_for('top'))  
-        else:
-            flash('ログインに失敗しました。')
-            return redirect(url_for('login.html'))  
-    return render_template('login.html')  
+    return display_message
 
 
-@app.route('/')
-@login_required
-def home():
-    return 'ログイン成功しました'
+@csrf_exempt
+def login(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        password = request.POST.get("password")
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('top.html'))
+        if not email or not password:
+            return render(request, "auth/login.html", {"message": "メールアドレスとパスワードは必須です。"})
 
-if __name__ == '__main__':
-    app.run(debug=True)
+        # Supabase Authログイン
+        try:
+            login_response = requests.post(
+                SUPABASE_LOGIN_URL,
+                headers={
+                    "apikey": SUPABASE_API_KEY,
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "email": email,
+                    "password": password
+                }
+            )
+            login_response.raise_for_status()
+
+            # ログイン成功 → トップページへ
+            return redirect("top")
+
+        except requests.exceptions.HTTPError as e:
+            display_message = get_translated_error_message(e)
+            return render(request, "auth/login.html", {"message": f"ログインエラー：{display_message}"})
+        except requests.exceptions.RequestException as e:
+            return render(request, "auth/login.html", {"message": f"ネットワークエラー：{str(e)}"})
+
+    # GETリクエスト時はログイン画面を表示
+    return render(request, "auth/login.html")
