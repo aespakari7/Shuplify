@@ -9,9 +9,6 @@ SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 SUPABASE_SIGNUP_URL = f"{SUPABASE_URL}/auth/v1/signup"
 SUPABASE_DB_INSERT_URL = f"{SUPABASE_URL}/rest/v1/users" # public.users テーブルへのURL
 
-<<<<<<< HEAD
-@csrf_exempt 
-=======
 # エラーメッセージを日本語に変換するロジック関数
 def get_translated_error_message(e, is_auth_error=True):
     error_json = {}
@@ -55,7 +52,6 @@ def get_translated_error_message(e, is_auth_error=True):
     return display_message
 
 @csrf_exempt
->>>>>>> main
 def signup(request):
     message = ""
     if request.method == "POST":
@@ -63,20 +59,6 @@ def signup(request):
         password = request.POST.get("password")
         name = request.POST.get("name")
 
-<<<<<<< HEAD
-       
-        auth_response = requests.post(
-            SUPABASE_SIGNUP_URL,
-            headers={
-                "apikey": SUPABASE_API_KEY,
-                "Content-Type": "application/json"
-            },
-            json={
-                "email": email,
-                "password": password
-            }
-        )
-=======
         if not email or not password or not name:
             return render(request, "auth/signup.html", {"message": "メールアドレス、パスワード、名前は必須です。"})
         
@@ -95,7 +77,6 @@ def signup(request):
             )
             # Authへのリクエストが200番台でなかったらエラーを発生させる
             auth_response.raise_for_status()
->>>>>>> main
 
 # Auth認証が成功した場合でも、public.usersテーブルに既にメールアドレスが存在するかチェック
             # これは、Supabase Authが既存ユーザーのサインアップ試行時にエラーを返さないセキュリティ挙動に対応するため
@@ -124,9 +105,6 @@ def signup(request):
             return render(request, "auth/signup.html", {"message": f"ネットワークエラー：{str(e)}"})
 
 
-<<<<<<< HEAD
-        return render(request, "signup.html", {"message": "登録完了しました！"})
-=======
 # Supabaseのusersテーブルに情報を追加
         try:
             insert_response = requests.post(
@@ -145,7 +123,6 @@ def signup(request):
             )
             # usersテーブルへの挿入が200番台でなかったらエラーを発生させる
             return redirect('confirm_email')
->>>>>>> main
 
         except requests.exceptions.HTTPError as e:
             # ★修正箇所：DB保存エラーにも日本語変換ロジックを適用（関数呼び出しに）★

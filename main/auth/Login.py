@@ -1,31 +1,3 @@
-<<<<<<< HEAD
-from django.contrib import admin
-from django.urls import path, include
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('main.urls')),  # ← ここが必要
-]
-
-
-from django.shortcuts import render, redirect
-from django.views.decorators.csrf import csrf_exempt
-
-@csrf_exempt
-def login_view(request):
-    error_message = None  # 初期値はエラーなし
-    if request.method == "POST":
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        
-       
-        if email != "test@example.com" or password != "pass123":
-            error_message = "メールアドレスまたはパスワードが間違っています"
-        else:
-            return redirect('home')  # 成功時はリダイレクト
-
-    return render(request, 'login.html', {'error': error_message})
-=======
 # main/auth/Login.py
 
 import requests
@@ -33,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
 SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
-SUPABASE_API_KEY = ""
+SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1NTA5MTksImV4cCI6MjA2MTEyNjkxOX0.l-CxOBeAyh1mYcJYaZR8Jh9NryPFoWPiYwYB0sl4bc0"
 SUPABASE_LOGIN_URL = f"{SUPABASE_URL}/auth/v1/token?grant_type=password"
 
 # エラーメッセージ翻訳
@@ -96,4 +68,3 @@ def login(request):
 
     # GETリクエスト時はログイン画面を表示
     return render(request, "auth/login.html")
->>>>>>> main
