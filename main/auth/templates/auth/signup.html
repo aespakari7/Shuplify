@@ -1,41 +1,21 @@
 <!DOCTYPE html>
 <head>
-  <title>signup</title>
+  <title>login</title>
 </head>
 <body>
-<<<<<<< HEAD:main/auth/signup.html
-  <body>
-      <img src="shuplify.png">
-    <h1>登録して就活を有利に！</h1>
-    <form action="top.html" method="post">
-       
-        <p>メールアドレス<br>
-=======
-    <h1>サインアップ</h1>
-    <form action="{% url 'signup' %}" method="post">
+    <h1>ログイン</h1>
+    <form action="{% url 'login' %}" method="post">
         {% csrf_token %}
-        <p>mail：<br>
->>>>>>> main:main/auth/templates/auth/signup.html
+        <p>メールアドレス：<br>
             <input type="email" name="email" id="mail" required>
         </p>
-        <p>パスワード<br>
+        <p>パスワード：<br>
             <input type="password" name="password" id="password" required>
         </p>
-        <p>ニックネーム<br>
-            <input type="text" name="name" id="username" required>
-        </p>
         <p>
-        <button type="submit" id="signupbutton">次へ</button>
+            <button type="submit" id="loginbutton">ログイン</button>
         </p>
-       
-    
     </form>
-<<<<<<< HEAD:main/auth/signup.html
-    <p>すでにアカウントをお持ちの場合は</p>
-    <a href="login.html">ログイン</a>
-=======
-    <p>ログインはこちら</p>
-    <a href="/auth/login/">ログイン</a>
->>>>>>> main:main/auth/templates/auth/signup.html
+    
 </body>
 </html>
