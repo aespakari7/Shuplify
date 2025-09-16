@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os # 追加: 環境変数を読み込むために必要
+import dj_database_url # 追加: データベースURLをパースするために必要
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,8 +27,12 @@ SECRET_KEY = 'django-insecure-ph(abdj_-!_=1k2(^r-3q*lflk+ez)7^55c=6gb9#5k&_42rnq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    'shuplify-nvgs.onrender.com',
+    '13.228.225.19',
+    '18.142.128.26',
+    '54.254.162.138'
+]
 
 # Application definition
 
@@ -37,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'main',
 ]
 
 MIDDLEWARE = [
@@ -54,7 +61,7 @@ ROOT_URLCONF = 'Django.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'main' / 'auth' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -72,12 +79,24 @@ WSGI_APPLICATION = 'Django.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# ↓↓↓ ここから修正/追記 ↓↓↓
+DATABASE_URL = os.environ.get('DATABASE_URL') # Renderで設定する環境変数からURLを取得
+
+if DATABASE_URL:
+    # DATABASE_URLが設定されている場合（Renderなどの本番環境）はPostgreSQLを使用
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
     }
-}
+else:
+    # DATABASE_URLが設定されていない場合（ローカル開発環境など）はSQLiteを使用
+    # 必要に応じて、ここもローカルのPostgreSQLやSupabaseのローカルエミュレータに接続するよう変更可能
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+# ↑↑↑ ここまで修正/追記 ↑↑↑
 
 
 # Password validation

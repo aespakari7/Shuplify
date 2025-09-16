@@ -3,12 +3,19 @@
   <title>signup</title>
 </head>
 <body>
+<<<<<<< HEAD:main/auth/signup.html
   <body>
       <img src="shuplify.png">
     <h1>登録して就活を有利に！</h1>
     <form action="top.html" method="post">
        
         <p>メールアドレス<br>
+=======
+    <h1>サインアップ</h1>
+    <form action="{% url 'signup' %}" method="post">
+        {% csrf_token %}
+        <p>mail：<br>
+>>>>>>> main:main/auth/templates/auth/signup.html
             <input type="email" name="email" id="mail" required>
         </p>
         <p>パスワード<br>
@@ -23,7 +30,12 @@
        
     
     </form>
+<<<<<<< HEAD:main/auth/signup.html
     <p>すでにアカウントをお持ちの場合は</p>
     <a href="login.html">ログイン</a>
+=======
+    <p>ログインはこちら</p>
+    <a href="/auth/login/">ログイン</a>
+>>>>>>> main:main/auth/templates/auth/signup.html
 </body>
 </html>
