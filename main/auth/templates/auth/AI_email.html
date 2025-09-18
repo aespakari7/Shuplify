@@ -49,48 +49,83 @@
         </div>
     </div>
     <script>
-        const sendButton = document.getElementById('send-button');
-        const userInput = document.getElementById('user-input');
-        const chatWindow = document.getElementById('chat-window');
-        sendButton.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
+        (function(){
+            const sendButton = document.getElementById('send-button');
+            const userInput = document.getElementById('user-input');
+            const chatWindow = document.getElementById('chat-window');
+
+            sendButton.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', function(e){ if(e.key === 'Enter') sendMessage(); });
+
+            function escapeAndFormat(text){
+                const el = document.createElement('div'); el.textContent = text; return el.innerHTML.replace(/\n/g,'<br>');
             }
-        });
-        function sendMessage() {
-            const message = userInput.value.trim();
-            if (message === '') return;
-            appendMessage('あなた: ' + message);
-            userInput.value = '';
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-            fetch('/main/auth/email-tutor/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.response) {
-                    appendMessage('Gemini: ' + data.response);
-                } else {
-                    appendMessage('エラー: AIからの応答がありませんでした。');
-                }
+
+            function appendBot(text){
+                const wrapper = document.createElement('div'); wrapper.className = 'message bot';
+                const avatar = document.createElement('div'); avatar.className = 'avatar bot'; avatar.textContent = 'G';
+                const inner = document.createElement('div');
+                const bubble = document.createElement('div'); bubble.className = 'bubble'; bubble.innerHTML = escapeAndFormat(text);
+                const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = 'Gemini';
+                inner.appendChild(bubble); inner.appendChild(meta);
+                wrapper.appendChild(avatar); wrapper.appendChild(inner);
+                chatWindow.appendChild(wrapper);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
-            })
-            .catch(error => {
-                console.error('通信エラー:', error);
-                appendMessage(`エラーが発生しました: ${error.message || '接続に失敗しました'}`);
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-            });
-        }
-        function appendMessage(text) {
-            const messageDiv = document.createElement('div');
-            messageDiv.textContent = text;
-            chatWindow.appendChild(messageDiv);
-        }
+                return wrapper;
+            }
+
+            function appendUser(text){
+                const wrapper = document.createElement('div'); wrapper.className = 'message user';
+                const inner = document.createElement('div'); const bubble = document.createElement('div'); bubble.className='bubble'; bubble.textContent = text;
+                const meta = document.createElement('div'); meta.className='meta'; meta.textContent='あなた'; inner.appendChild(bubble); inner.appendChild(meta); wrapper.appendChild(inner);
+                chatWindow.appendChild(wrapper); chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
+
+            function setSending(state){
+                sendButton.disabled = state; userInput.disabled = state;
+                sendButton.style.opacity = state ? 0.6 : 1;
+            }
+
+            function sendMessage(){
+                const message = userInput.value.trim(); if(!message) return;
+                appendUser(message); userInput.value='';
+                setSending(true);
+
+                // typing indicator
+                const typing = appendBot('...');
+
+                fetch('/main/auth/email-tutor/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken': (function(){const m=document.cookie.match(/csrftoken=([^;]+)/); return m?m[1]:'';})()}, body:JSON.stringify({message:message})})
+                .then(r=>r.json())
+                .then(data=>{
+                    chatWindow.removeChild(typing);
+                    if(data.response){
+                        const resWrap = appendBot(data.response);
+                        addPostActions(resWrap, data.response);
+                    } else {
+                        appendBot('エラー: AIからの応答がありませんでした。');
+                    }
+                })
+                .catch(e=>{
+                    chatWindow.removeChild(typing);
+                    console.error(e); appendBot('エラーが発生しました: ' + (e.message||e));
+                })
+                .finally(()=> setSending(false));
+            }
+
+            function addPostActions(botWrapper, text){
+                const actions = document.createElement('div'); actions.style.marginTop='6px';
+                const copyBtn = document.createElement('button'); copyBtn.textContent='コピー'; copyBtn.style.marginRight='6px';
+                const dlBtn = document.createElement('button'); dlBtn.textContent='ダウンロード';
+                copyBtn.addEventListener('click', ()=> navigator.clipboard.writeText(text));
+                dlBtn.addEventListener('click', ()=>{
+                    const blob = new Blob([text], {type:'text/plain'}); const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href=url; a.download='ai_response.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+                });
+                actions.appendChild(copyBtn); actions.appendChild(dlBtn);
+                // append under the bubble (assume structure: wrapper->avatar, inner)
+                const inner = botWrapper.querySelector('div:nth-child(2)'); inner.appendChild(actions);
+            }
+        })();
     </script>
 </body>
 </html>
