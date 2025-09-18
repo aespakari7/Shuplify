@@ -49,19 +49,40 @@
         </div>
     </div>
     <script>
-        // page-specific chat setup for ES
-        window.addEventListener('DOMContentLoaded', function(){
-            if(window.AIChat && typeof window.AIChat.setupChat === 'function'){
-                window.AIChat.setupChat({
-                    chatWindowId: 'chat-window',
-                    inputId: 'user-input',
-                    buttonId: 'send-button',
-                    endpoint: '/main/auth/es-tutor/',
-                    botName: 'Gemini'
-                });
+        (function(){
+            const sendButton = document.getElementById('send-button');
+            const userInput = document.getElementById('user-input');
+            const chatWindow = document.getElementById('chat-window');
+
+            sendButton.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', function(e){ if(e.key==='Enter') sendMessage(); });
+
+            function escapeAndFormat(text){ const el=document.createElement('div'); el.textContent=text; return el.innerHTML.replace(/\n/g,'<br>'); }
+
+            function now(){ const d=new Date(); return d.toLocaleTimeString(); }
+
+            function appendBot(text){
+                const wrapper=document.createElement('div'); wrapper.className='message bot';
+                const avatar=document.createElement('div'); avatar.className='avatar bot'; avatar.textContent='G';
+                const inner=document.createElement('div'); const bubble=document.createElement('div'); bubble.className='bubble'; bubble.innerHTML=escapeAndFormat(text);
+                const meta=document.createElement('div'); meta.className='meta'; meta.textContent='Gemini • '+now(); inner.appendChild(bubble); inner.appendChild(meta);
+                wrapper.appendChild(avatar); wrapper.appendChild(inner); chatWindow.appendChild(wrapper); chatWindow.scrollTop=chatWindow.scrollHeight; return wrapper;
             }
-        });
+
+            function appendUser(text){
+                const wrapper=document.createElement('div'); wrapper.className='message user'; const inner=document.createElement('div'); const bubble=document.createElement('div'); bubble.className='bubble'; bubble.textContent=text; const meta=document.createElement('div'); meta.className='meta'; meta.textContent='あなた • '+now(); inner.appendChild(bubble); inner.appendChild(meta); wrapper.appendChild(inner); chatWindow.appendChild(wrapper); chatWindow.scrollTop=chatWindow.scrollHeight; return wrapper;
+            }
+
+            function setSending(s){ sendButton.disabled=s; userInput.disabled=s; sendButton.style.opacity = s?0.6:1; }
+
+            function sendMessage(){ const message=userInput.value.trim(); if(!message) return; appendUser(message); userInput.value=''; setSending(true);
+                const typing = appendBot('...');
+                fetch('/main/auth/es-tutor/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':(function(){const m=document.cookie.match(/csrftoken=([^;]+)/);return m?m[1]:'';})()}, body:JSON.stringify({message:message})})
+                .then(r=>r.json()).then(data=>{ chatWindow.removeChild(typing); if(data.response){ appendBot(data.response); } else { appendBot('エラー: AIからの応答がありませんでした。'); } })
+                .catch(e=>{ chatWindow.removeChild(typing); console.error(e); appendBot('エラーが発生しました: '+(e.message||e)); })
+                .finally(()=> setSending(false));
+            }
+        })();
     </script>
-    <script src="/static/main/auth/js/chat.js"></script>
 </body>
 </html>
