@@ -2,7 +2,7 @@
 
 from django.urls import path
 from . import Sign_up
-#from . import Login
+from . import Login
 from . import Top
 from . import AI_ES
 from . import AI_email
