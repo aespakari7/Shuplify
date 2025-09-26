@@ -10,7 +10,7 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     path('signup/', Sign_up.signup, name='signup'), # /main/auth/signup/ で実行される
-    #path('signup/', Login.login, name='signup'), # /main/auth/login/ で実行される
+    path('login/', Login.login, name='login'), # /main/auth/login/ で実行される
     path('top/', Top.top, name='top'), # /main/auth/top/ で実行される
     path('confirm-email/', TemplateView.as_view(template_name='auth/confirm_email.html'), name='confirm_email'),
     path('es-tutor/', AI_ES.aies, name='es_tutor'), # /main/auth/es-tutor/ で実行される
