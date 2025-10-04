@@ -2,9 +2,9 @@
 
 from django.shortcuts import render
 from datetime import date
-from .models import CalendarEvent, Company # モデルをインポート
+from .models import CalendarEvent # Companyのインポートは不要
 from .utils import CalendarUtil
-from django.contrib.auth.models import User # 仮のユーザー処理用
+from django.contrib.auth.models import User 
 
 def top(request):
     # ユーザー認証が未実装のため、ダミー/暫定処理
@@ -14,21 +14,18 @@ def top(request):
     else:
         # デバッグ/開発用: ログインしていない場合は、ダミーとしてID=1のユーザーを使用を試みる
         try:
+            # 実際の環境に合わせて User の取得ロジックを調整してください
             dummy_user = User.objects.first() 
-            user_id = dummy_user.id if dummy_user else None
+            user_id = dummy_user.id if dummy_user else 1 # 暫定的にID=1
         except:
-            pass # データベースが空の場合
+            user_id = 1 
 
     today = date.today()
-    
-    # 常に現在の月を表示
     year = today.year
     month = today.month
-
-    # フィルタリング用のクエリセットを準備 (user_id があればフィルタ)
+    
+    # フィルタリング用のクエリセットを準備
     if user_id is not None:
-        # カレンダーに表示するイベントは、月全体の日付範囲でフィルタリングすると効率が良い
-        # しかし、CalendarUtil内で日付ごとにフィルタリングするため、ここではユーザーIDのみで全イベントを取得
         all_events = CalendarEvent.objects.filter(user_id=user_id)
     else:
         all_events = CalendarEvent.objects.none()
@@ -43,16 +40,15 @@ def top(request):
     context = {
         'current_month_name': today.strftime('%Y年%m月'),
         'html_calendar': html_calendar,
-        'today_tasks': today_events,
+        'today_tasks': today_events, # 生のイベントオブジェクトをそのまま渡す
         
-        # URLを整理し、フロント側で使いやすいように変更
+        # URLを整理
         'urls': {
             'profile': '/profile/',
-            'chat': '/main/auth/aichat/',
+            'chat': '/main/auth/aichat/', 
             'es_tutor': '/main/auth/es-tutor/',
             'email_tutor': '/main/auth/email-tutor/',
             'self_analysis': '/self-analysis/',
-            # CalendarDetailのURLはCalendarUtilでイベントIDを使って生成済み
         }
     }
 
