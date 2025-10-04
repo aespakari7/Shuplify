@@ -8,7 +8,6 @@ from django.db import models
 class CalendarEvent(models.Model):
     calendar_id = models.AutoField(primary_key=True)
     user_id = models.IntegerField(verbose_name="ユーザーID")
-    # company_id はDBに存在する可能性がありますが、モデル上は無視します
     title = models.CharField(max_length=255, verbose_name="タイトル")
     memo = models.TextField(blank=True, verbose_name="メモ") # ★企業名はこのフィールドを使う
     start_time = models.DateTimeField(verbose_name="開始日時")
