@@ -44,7 +44,7 @@ class CalendarUtil:
         html.append('<div class="cal-events-list">')
         for event in events_on_day:
             # イベントをリンクとして表示し、デザインクラスを付与
-            html.append(f'<a href="/main/auth/calendar-detail/{event.id}/" class="cal-event-item">')
+            html.append(f'<a href="/main/auth/calendar-detail/{event.calendar_id}/" class="cal-event-item">')
             html.append(f'<span>{event.title}</span>')
             html.append('</a>')
         html.append('</div>')
