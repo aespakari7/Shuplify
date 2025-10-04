@@ -4,7 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ユーザーTOPページ</title>
-    </head>
+    <style>
+        /* 既存のレイアウト（管理項目、タスク）のスタイルはここに定義されていると仮定 */
+        
+        /* === カレンダー機能用の最小限のCSS骨組み === */
+        
+        /* カレンダーエリア全体 */
+        .calendar-section { 
+            margin-top: 30px; 
+            padding: 15px; 
+            border: 1px solid #ddd; /* 視覚的に分離 */
+        }
+        .cal-month-header {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        /* カレンダーテーブルの基本骨組み */
+        .cal-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; 
+        }
+        .cal-header-day { 
+            text-align: center; 
+            padding: 10px 0;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+        }
+        .cal-day, .cal-noday {
+            height: 80px; /* フロント担当者が変更しやすいように高さを固定 */
+            border: 1px solid #e0e0e0;
+            vertical-align: top;
+            padding: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .cal-noday { background-color: #fafafa; }
+        .cal-today { border: 2px solid #007bff; background-color: #e6f3ff; } /* 今日の日付 */
+        .cal-date { 
+            font-weight: bold; 
+            display: block; 
+            text-align: right;
+            margin-bottom: 5px;
+        }
+        
+        /* イベントアイテムのデザイン骨組み */
+        .cal-events-list { margin-top: 5px; }
+        .cal-event-item {
+            display: block;
+            background-color: #b3e0ff;
+            color: #1a1a1a;
+            padding: 1px 4px;
+            margin-bottom: 1px;
+            border-radius: 3px;
+            text-decoration: none;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-size: 10px;
+        }
+    </style>
+</head>
 <body>
     <div class="user-dashboard">
 
@@ -17,7 +79,10 @@
             <ul id="today-tasks-list">
                 {% if today_tasks %}
                     {% for event in today_tasks %}
-                        <li>{{ event.title }} - {{ event.start_time|date:"H:i" }}</li>
+                        <li>
+                            {{ event.title }} - {{ event.start_time|date:"H:i" }} 
+                            {% if event.company %}<small>({{ event.company.name }})</small>{% endif %}
+                        </li>
                     {% empty %}
                         <li>今日のタスクはありません。</li>
                     {% endfor %}
@@ -32,7 +97,7 @@
                 <img src="/static/images/profile-icon.png" alt="プロフィール">
                 <p>プロフィール</p>
             </a>
-            <a href="{% url 'login' %}">
+            <a href="{{ urls.chat }}">
                 <img src="/static/images/ai-chat-icon.png" alt="AIチャット">
                 <p>AIチャット</p>
             </a>
@@ -40,11 +105,11 @@
                 <img src="/static/images/self-analysis-icon.png" alt="自己分析">
                 <p>自己分析</p>
             </a>
-            <a href="{% url 'login' %}">
-                <img src="/static/images/calendar-icon.png" alt="カレンダー">
+            <a href="{% url 'login' %}"> 
+                <img なsrc="/static/images/calendar-icon.png" alt="カレンダー">
                 <p>カレンダー</p>
             </a>
-            <a href="{% url 'es_tutor' %}">
+            <a href="{{ urls.es_tutor }}">
                 <img src="/static/images/es-edit-icon.png" alt="ES添削">
                 <p>ES添削</p>
             </a>
@@ -52,7 +117,7 @@
                 <img src="/static/images/company-analysis-icon.png" alt="企業分析">
                 <p>企業分析</p>
             </a>
-            <a href="{% url 'email_tutor' %}">
+            <a href="{{ urls.email_tutor }}">
                 <img src="/static/images/mail-edit-icon.png" alt="メール添削">
                 <p>メール添削</p>
             </a>
@@ -61,6 +126,14 @@
                 <p>企業管理</p>
             </a>
         </div>
+        
+        <div class="calendar-section">
+            <h2 class="cal-month-header">{{ current_month_name }}</h2>
+            <div id="calendar-area">
+                {{ html_calendar|safe }} 
+            </div>
+        </div>
+
     </div>
 </body>
 </html>

@@ -1,49 +1,59 @@
 # main/auth/Top.py
 
 from django.shortcuts import render
-# from django.contrib.auth.decorators import login_required # ログイン必須にするため、この行をコメントアウトまたは削除
 from datetime import date
-from .models import CalendarEvent
+from .models import CalendarEvent, Company # モデルをインポート
+from .utils import CalendarUtil
+from django.contrib.auth.models import User # 仮のユーザー処理用
 
-# @login_required # この行をコメントアウトまたは削除
 def top(request):
-    """
-    ユーザーのTOPページを表示し、今日のタスクをデータベースから取得して渡すビュー
-    """
-    # ユーザーがログインしていない場合、request.user.id は通常 anonymous user のID となるか、エラーになる可能性があります。
-    # セッションなしで進める場合、ここでは仮のユーザーIDを使用するか、
-    # ログイン機能が実装されるまで CalendarEvent のフィルタリングを一時的に変更する必要があります。
-    # 例: デバッグ用に特定のユーザーIDを使用
-    # user_id = 1 # 仮のユーザーID (開発用)
-    # または、ユーザーIDなしで全てのイベントを取得
-    # today_events = CalendarEvent.objects.filter(start_time__date=today).order_by('start_time')
-
-    # 現在はログインをスキップするため、仮のユーザーIDを使用するか、この部分を一時的に無効にするのが良いでしょう。
-    # ここでは、ログイン後にrequest.user.idが設定されることを前提としているため、
-    # ログインなしでアクセスするとエラーになる可能性があります。
-    # 開発中は、一旦このフィルタリングをなくすか、ダミーのデータを使用することを検討してください。
-    user_id = request.user.id # ログインが有効になるまでは、この行は注意が必要です。
+    # ユーザー認証が未実装のため、ダミー/暫定処理
+    user_id = None
+    if request.user.is_authenticated:
+        user_id = request.user.id
+    else:
+        # デバッグ/開発用: ログインしていない場合は、ダミーとしてID=1のユーザーを使用を試みる
+        try:
+            dummy_user = User.objects.first() 
+            user_id = dummy_user.id if dummy_user else None
+        except:
+            pass # データベースが空の場合
 
     today = date.today()
+    
+    # 常に現在の月を表示
+    year = today.year
+    month = today.month
 
-    # 現在のユーザーに紐づく今日のカレンダーイベントを取得
-    today_events = CalendarEvent.objects.filter(
-        user_id=user_id, # user_id が存在しない場合、エラーになる可能性があります
-        start_time__date=today
-    ).order_by('start_time')
+    # フィルタリング用のクエリセットを準備 (user_id があればフィルタ)
+    if user_id is not None:
+        # カレンダーに表示するイベントは、月全体の日付範囲でフィルタリングすると効率が良い
+        # しかし、CalendarUtil内で日付ごとにフィルタリングするため、ここではユーザーIDのみで全イベントを取得
+        all_events = CalendarEvent.objects.filter(user_id=user_id)
+    else:
+        all_events = CalendarEvent.objects.none()
 
-    # テンプレートに渡すコンテキストデータ
+    # 今日のイベントのみをフィルタリング
+    today_events = all_events.filter(start_time__date=today).order_by('start_time')
+    
+    # CalendarUtilを使って月間カレンダーを生成
+    cal = CalendarUtil(year, month)
+    html_calendar = cal.format_month(all_events)
+
     context = {
+        'current_month_name': today.strftime('%Y年%m月'),
+        'html_calendar': html_calendar,
         'today_tasks': today_events,
-        'profile_url': '/profile/', # 仮のURL、実際のURLパスに合わせて修正してください
-        'chat_url': '/AIchat/',
-        'self_analysis_url': '/self-analysis/',
-        'calendar_detail_url': '/calendar-detail/',
-        'es_edit_url': '/es-edit/',
-        'company_analysis_url': '/company-analysis/',
-        'mail_edit_url': '/mail-edit/',
-        'company_manage_url': '/company-manage/',
+        
+        # URLを整理し、フロント側で使いやすいように変更
+        'urls': {
+            'profile': '/profile/',
+            'chat': '/main/auth/aichat/',
+            'es_tutor': '/main/auth/es-tutor/',
+            'email_tutor': '/main/auth/email-tutor/',
+            'self_analysis': '/self-analysis/',
+            # CalendarDetailのURLはCalendarUtilでイベントIDを使って生成済み
+        }
     }
 
-    # 'main/auth/templates/auth/top.html' をレンダリング
     return render(request, 'auth/top.html', context)
