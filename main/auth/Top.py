@@ -7,18 +7,18 @@ from .utils import CalendarUtil
 from django.contrib.auth.models import User 
 
 def top(request):
-    # ユーザー認証が未実装のため、ダミー/暫定処理
+
+    # セッションがまだなので仮 user_id 5 でログインしてる事にする
     user_id = None
     if request.user.is_authenticated:
         user_id = request.user.id
     else:
-        # デバッグ/開発用: ログインしていない場合は、ダミーとしてID=1のユーザーを使用を試みる
         try:
-            # 実際の環境に合わせて User の取得ロジックを調整してください
             dummy_user = User.objects.first() 
-            user_id = dummy_user.id if dummy_user else 1 # 暫定的にID=1
+            user_id = dummy_user.id if dummy_user else 5
         except:
-            user_id = 1 
+            user_id = 5
+    #ここまで仮
 
     today = date.today()
     year = today.year
