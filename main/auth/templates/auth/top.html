@@ -26,6 +26,13 @@
         </div>
 
         <div class="task-section">
+
+        <div class="calendar-section">
+            <h2 class="cal-month-header">{{ current_month_name }}</h2>
+            <div id="calendar-area">
+                {{ html_calendar|safe }} 
+            </div>
+        </div>
             <h2>今日のタスク</h2>
             <ul id="today-tasks-list">
                 {% if today_tasks %}
@@ -76,13 +83,6 @@
                 <img src="/static/images/company-manage-icon.png" alt="企業管理">
                 <p>企業管理</p>
             </a>
-        </div>
-        
-        <div class="calendar-section">
-            <h2 class="cal-month-header">{{ current_month_name }}</h2>
-            <div id="calendar-area">
-                {{ html_calendar|safe }} 
-            </div>
         </div>
 
     </div>
