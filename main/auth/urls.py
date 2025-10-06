@@ -6,7 +6,6 @@ from . import Login
 from . import Top
 from . import AI_ES
 from . import AI_email
-from . import Calendar
 from django.views.generic import TemplateView
 
 urlpatterns = [
