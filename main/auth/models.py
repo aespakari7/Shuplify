@@ -3,7 +3,7 @@
 from django.db import models
 
 # ----------------------------------------------------
-# カレンダーテーブルのモデル (company_idを削除)
+# カレンダーテーブルのモデル
 # ----------------------------------------------------
 class CalendarEvent(models.Model):
     calendar_id = models.AutoField(primary_key=True)
