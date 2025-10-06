@@ -16,5 +16,4 @@ urlpatterns = [
     path('confirm-email/', TemplateView.as_view(template_name='auth/confirm_email.html'), name='confirm_email'),
     path('es-tutor/', AI_ES.aies, name='es_tutor'), # /main/auth/es-tutor/ で実行される
     path('email-tutor/', AI_email.aiemail, name='email_tutor'),# /main/auth/email-tutor/ で実行される
-    path('calendar/', Calendar.calendar, name='calendar'),# /main/auth/calendar/ で実行される
 ]
