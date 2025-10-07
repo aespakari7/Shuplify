@@ -49,7 +49,17 @@
         <form method="post" action="{% url 'add_event' %}">
             {% csrf_token %} <div class="form-group">
                 <label for="title">タイトル（必須）：</label>
-                <input type="text" id="title" name="title" required placeholder="例: 面接、説明会、自己分析">
+                <input type="text" id="title" name="title" required placeholder="例：面接（企業名）、説明会（企業名）、自己分析など">
+            </div>
+
+            <div class="form-group">
+                <label for="color">イベントの種類（色）：</label>
+                <select id="color" name="color">
+                    <option value="blue">面接 (青)</option>
+                    <option value="green">説明会 (緑)</option>
+                    <option value="red">自己分析 (赤)</option>
+                    <option value="yellow">その他 (黄)</option>
+                </select>
             </div>
 
             <div class="form-group">
@@ -63,8 +73,8 @@
             </div>
 
             <div class="form-group">
-                <label for="memo">メモ（企業名/詳細など）：</label>
-                <textarea id="memo" name="memo" rows="4" placeholder="例: 株式会社テスト企業、場所: Web会議室"></textarea>
+                <label for="memo">メモ（詳細など）：</label>
+                <textarea id="memo" name="memo" rows="4" placeholder="例：場所：Web会議室"></textarea>
             </div>
 
             <button type="submit">イベントを登録</button>
@@ -72,5 +82,15 @@
 
         <a href="{% url 'top' %}" class="back-link">← TOPページ（カレンダー）へ戻る</a>
     </div>
+
+        <script>
+        function disableButton(form) {
+            // submitボタンを無効化し、ユーザーに処理中であることを伝える
+            document.getElementById('submit-button').disabled = true;
+            document.getElementById('submit-button').innerText = '登録中...';
+            return true; // フォームの送信を続行
+        }
+        </script>
+
 </body>
 </html>
