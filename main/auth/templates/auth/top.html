@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ユーザーTOPページ</title>
     <style>
-        /* CSSは省略 */
+        /* CSSは省略 - 以前のCSSを使用 */
         .calendar-section { margin-top: 30px; padding: 15px; border: 1px solid #ddd; }
         .cal-month-header { text-align: center; font-size: 1.5em; margin-bottom: 15px; }
         .cal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -24,15 +24,50 @@
         <div class="header">
             <h1>管理項目</h1>
         </div>
-
-        <div class="task-section">
-
+        
         <div class="calendar-section">
             <h2 class="cal-month-header">{{ current_month_name }}</h2>
             <div id="calendar-area">
                 {{ html_calendar|safe }} 
             </div>
         </div>
+
+        <div class="management-items">
+            <a href="{% url 'login' %}">
+                <img src="/static/images/profile-icon.png" alt="プロフィール">
+                <p>プロフィール</p>
+            </a>
+            <a href="{% url 'login' %}">
+                <img src="/static/images/ai-chat-icon.png" alt="AIチャット">
+                <p>AIチャット</p>
+            </a>
+            <a href="{% url 'login' %}">
+                <img src="/static/images/self-analysis-icon.png" alt="自己分析">
+                <p>自己分析</p>
+            </a>
+            <a href="{% url 'top' %}"> 
+                <img src="/static/images/calendar-icon.png" alt="カレンダー">
+                <p>カレンダー管理</p>
+            </a>
+            <a href="{% url 'add_event' %}"> 
+                <img src="/static/images/add-icon.png" alt="イベント追加">
+                <p>イベント追加</p>
+            </a>
+            <a href="{% url 'es_tutor' %}">
+                <img src="/static/images/es-edit-icon.png" alt="ES添削">
+                <p>ES添削</p>
+            </a>
+            <a href="{% url 'email_tutor' %}">
+                <img src="/static/images/mail-edit-icon.png" alt="メール添削">
+                <p>メール添削</p>
+            </a>
+            <a href="{% url 'login' %}">
+                <img src="/static/images/company-manage-icon.png" alt="企業管理">
+                <p>企業管理</p>
+            </a>
+        </div>
+        
+        <div class="task-section">
             <h2>今日のタスク</h2>
             <ul id="today-tasks-list">
                 {% if today_tasks %}
@@ -48,17 +83,6 @@
                     <li>今日のタスクはありません。</li>
                 {% endif %}
             </ul>
-        </div>
-
-        <div class="management-items">
-            <a href="{% url 'es_tutor' %}">
-                <img src="/stcalendarit-icon.png" alt="ES添削">
-                <p>ES添削</p>
-            </a>
-            <a href="{% url 'email_tutor' %}">
-                <img src="/static/images/mail-edit-icon.png" alt="メール添削">
-                <p>メール添削</p>
-            </a>
         </div>
 
     </div>
