@@ -153,23 +153,19 @@ def delete_event(request, event_id):
 
     if request.method == 'POST':
         try:
-            # ユーザーのイベントであることを確認
-            event = get_object_or_404(CalendarEvent, calendar_id=event_id, user_id=user_id)
-        except Exception as e:
-            # エラー時やイベントが見つからない場合
-            messages.error(request, 'イベントが見つからないか、削除権限がありません。')
+            # ユーザーIDも条件に入れて、他人のイベントを削除できないようにする
+            event = CalendarEvent.objects.get(calendar_id=event_id, user_id=user_id)
+
+        
+        except CalendarEvent.DoesNotExist:
+            # 既に削除されている、またはIDが存在しない場合、TOPへリダイレクト
             return redirect('top')
-            
         
         # イベントを削除
-        event_title = event.title
         event.delete()
         
-        # 成功メッセージをセット
-        messages.success(request, f'イベント「{event_title}」を削除しました。')
-        
-        # ★修正: HttpResponseRedirect と reverse を使用し、ブラウザ履歴を上書きして連打を防止
-        return HttpResponseRedirect(reverse('top'))
+        # 削除完了後、TOPページへリダイレクト
+        return redirect('top')
     
     # POSTメソッド以外でのアクセスは許可しない
     return redirect('top')
