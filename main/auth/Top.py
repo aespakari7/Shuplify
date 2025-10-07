@@ -146,24 +146,30 @@ def delete_event(request, event_id):
     指定されたIDのCalendarEventを削除するビュー。
     削除後、TOPページにリダイレクトする。
     """
-    # ★修正: 認証ロジックを get_current_user_id に統一
     user_id = get_current_user_id(request)
     
     if user_id is None:
-        # ユーザーIDがない場合はTOPへリダイレクト
         return redirect('top') 
 
     if request.method == 'POST':
-        # 指定されたIDのイベントを取得。
-        # ユーザーのイベントであることを確認するため、user_idでフィルタリングする
-        # CalendarEventが存在しない場合は404、ユーザーが異なれば削除させない
-        event = get_object_or_404(CalendarEvent, calendar_id=event_id, user_id=user_id)
+        try:
+            # ユーザーのイベントであることを確認
+            event = get_object_or_404(CalendarEvent, calendar_id=event_id, user_id=user_id)
+        except Exception as e:
+            # エラー時やイベントが見つからない場合
+            messages.error(request, 'イベントが見つからないか、削除権限がありません。')
+            return redirect('top')
             
+        
         # イベントを削除
+        event_title = event.title
         event.delete()
         
-        # 削除完了後、TOPページへリダイレクト
-        return redirect('top')
+        # 成功メッセージをセット
+        messages.success(request, f'イベント「{event_title}」を削除しました。')
+        
+        # ★修正: HttpResponseRedirect と reverse を使用し、ブラウザ履歴を上書きして連打を防止
+        return HttpResponseRedirect(reverse('top'))
     
     # POSTメソッド以外でのアクセスは許可しない
     return redirect('top')
