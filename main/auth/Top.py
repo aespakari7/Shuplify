@@ -82,16 +82,28 @@ def add_event(request):
         memo = request.POST.get('memo')
         start_date = request.POST.get('start_date')
         start_time = request.POST.get('start_time')
+        color = request.POST.get('color')
         
         if start_date and start_time:
             start_datetime_str = f"{start_date} {start_time}"
             try:
-                # 日付と時刻を結合して datetime オブジェクトに変換
                 start_datetime = datetime.strptime(start_datetime_str, '%Y-%m-%d %H:%M')
             except ValueError:
                 return redirect('top') 
         else:
             return redirect('top') 
+
+
+        # 重複防止ロジック
+        # 同じユーザー、同じ日時、同じタイトルのイベントが既に存在するかチェック
+        if CalendarEvent.objects.filter(
+            user_id=user_id,
+            title=title,
+            start_time=start_datetime
+        ).exists():
+            # 重複が見つかった場合、作成せずにTOPへリダイレクト
+            return redirect('top')
+        
 
         # データベースに保存
         CalendarEvent.objects.create(
@@ -99,6 +111,7 @@ def add_event(request):
             title=title,
             memo=memo,
             start_time=start_datetime,
+            color=color,
         )
         
         return redirect('top')
