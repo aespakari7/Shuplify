@@ -65,7 +65,6 @@ def top(request):
 
     return render(request, 'auth/top.html', context)
 
-
 # -----------------------------------------------------------------
 # ビュー: イベント追加
 # -----------------------------------------------------------------
@@ -122,8 +121,7 @@ def add_event(request):
             'today_date': date.today().strftime('%Y-%m-%d')
         }
         return render(request, 'auth/add_event.html', context)
-
-
+    
 # -----------------------------------------------------------------
 # ビュー: イベント詳細
 # -----------------------------------------------------------------
@@ -139,3 +137,33 @@ def event_detail(request, pk):
     }
     
     return render(request, 'auth/event_detail.html', context)
+
+# -----------------------------------------------------------------
+# ビュー: イベント削除
+# -----------------------------------------------------------------
+def delete_event(request, event_id):
+    """
+    指定されたIDのCalendarEventを削除するビュー。
+    削除後、TOPページにリダイレクトする。
+    """
+    # ★修正: 認証ロジックを get_current_user_id に統一
+    user_id = get_current_user_id(request)
+    
+    if user_id is None:
+        # ユーザーIDがない場合はTOPへリダイレクト
+        return redirect('top') 
+
+    if request.method == 'POST':
+        # 指定されたIDのイベントを取得。
+        # ユーザーのイベントであることを確認するため、user_idでフィルタリングする
+        # CalendarEventが存在しない場合は404、ユーザーが異なれば削除させない
+        event = get_object_or_404(CalendarEvent, calendar_id=event_id, user_id=user_id)
+            
+        # イベントを削除
+        event.delete()
+        
+        # 削除完了後、TOPページへリダイレクト
+        return redirect('top')
+    
+    # POSTメソッド以外でのアクセスは許可しない
+    return redirect('top')

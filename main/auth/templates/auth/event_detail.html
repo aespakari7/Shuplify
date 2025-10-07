@@ -4,31 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ event.title }} 詳細</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .detail-container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
-        h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
-        p { margin-bottom: 15px; }
-        strong { display: inline-block; width: 80px; }
-        .back-link { display: block; margin-top: 20px; }
-    </style>
 </head>
 <body>
     <div class="detail-container">
         <h1>{{ event.title }}</h1>
         
-        <p><strong>タイトル:</strong> {{ event.title }}</p>
-        <p><strong>開始日時:</strong> {{ event.start_time|date:"Y年m月d日 H時i分" }}</p>
+        <h2>イベント詳細: {{ event.title }}</h2>
+        <p>日付: {{ event.start_time|date:"Y年m月d日" }}</p>
+        <p>時間: {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</p>
+        <p>メモ: {{ event.memo }}</p>
         
-        {% if event.end_time %}
-            <p><strong>終了日時:</strong> {{ event.end_time|date:"Y年m月d日 H時i分" }}</p>
-        {% endif %}
-        
-        <p><strong>メモ:</strong></p>
-        <div style="border: 1px solid #ddd; padding: 10px; white-space: pre-wrap;">
-            {{ event.memo }}
-        </div>
-        
+        <hr>
+
+        <form method="post" action="{% url 'delete_event' event_id=event.calendar_id %}" onsubmit="return confirm('本当にこのイベントを削除しますか？');">
+        {% csrf_token %}
+        <button type="submit">
+            削除
+        </button>
+        </form>
+
+        <a href="{% url 'top' %}">
+            編集
+        </a>
+
         <a href="{% url 'top' %}" class="back-link">TOPに戻る</a>
     </div>
 </body>

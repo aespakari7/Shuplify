@@ -16,5 +16,6 @@ urlpatterns = [
     path('es-tutor/', AI_ES.aies, name='es_tutor'), # /main/auth/es-tutor/ で実行される
     path('email-tutor/', AI_email.aiemail, name='email_tutor'),# /main/auth/email-tutor/ で実行される
     path('add-event/', Top.add_event, name='add_event'), # /main/auth/add-event/ で実行される
-    path('calendar-detail/<int:pk>/', Top.event_detail, name='calendar_detail'), # /main/auth/calendar-detail/ で実行される 
+    path('calendar-detail/<int:pk>/', Top.event_detail, name='calendar_detail'), # /main/auth/calendar-detail/ で実行される
+    path('delete-event/<int:event_id>/', Top.delete_event, name='delete_event'),
 ]

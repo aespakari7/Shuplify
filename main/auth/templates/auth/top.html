@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ユーザーTOPページ</title>
     <style>
-        /* CSSは省略 - 以前のCSSを使用 */
         .calendar-section { margin-top: 30px; padding: 15px; border: 1px solid #ddd; }
         .cal-month-header { text-align: center; font-size: 1.5em; margin-bottom: 15px; }
         .cal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -15,14 +14,10 @@
         .cal-today { border: 2px solid #007bff; background-color: #e6f3ff; }
         .cal-date { font-weight: bold; display: block; text-align: right; margin-bottom: 5px; }
         .cal-events-list { margin-top: 5px; }
-        /* 青色 (面接) */
-        .cal-event-blue { background-color: #b3e0ff; color: #1a1a1a; }
-        /* 緑色 (説明会) */
-        .cal-event-green { background-color: #c5f0c5; color: #1a1a1a; }
-        /* 赤色 (自己分析) */
-        .cal-event-red { background-color: #ffc9c9; color: #1a1a1a; }
-        /* 黄色 (その他) */
-        .cal-event-yellow { background-color: #fffac8; color: #1a1a1a; }
+        .cal-event-blue { background-color: #007bff; } /* 面接 (濃い青) */
+        .cal-event-green { background-color: #28a745; } /* 説明会 (濃い緑) */
+        .cal-event-red { background-color: #dc3545; } /* 自己分析 (濃い赤) */
+        .cal-event-yellow { background-color: #ffc107; } /* その他 (濃い黄) */
         .cal-event-item { 
             display: block; 
             padding: 1px 4px; 
@@ -33,6 +28,7 @@
             white-space: nowrap; 
             text-overflow: ellipsis; 
             font-size: 10px; 
+            color: white !important; 
         }
     </style>
 </head>
