@@ -5,16 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ユーザーTOPページ</title>
     <style>
-        .calendar-section { margin-top: 30px; padding: 15px; border: 1px solid #ddd; }
-        .cal-month-header { text-align: center; font-size: 1.5em; margin-bottom: 15px; }
-        .cal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .cal-header-day { text-align: center; padding: 10px 0; background-color: #f0f0f0; border: 1px solid #ccc; }
-        .cal-day, .cal-noday { height: 80px; border: 1px solid #e0e0e0; vertical-align: top; padding: 5px; font-size: 14px; box-sizing: border-box; }
-        .cal-noday { background-color: #fafafa; }
-        .cal-today { border: 2px solid #007bff; background-color: #e6f3ff; }
-        .cal-date { font-weight: bold; display: block; text-align: right; margin-bottom: 5px; }
-        .cal-events-list { margin-top: 5px; }
-    </style>
+
+    /* 仮CSSあとで消す */
+    .calendar-section { margin-top: 30px; padding: 15px; border: 1px solid #ddd; }
+    .cal-month-header { text-align: center; font-size: 1.5em; margin-bottom: 15px; }
+    .cal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .cal-header-day { text-align: center; padding: 10px 0; background-color: #f0f0f0; border: 1px solid #ccc; }
+    .cal-day, .cal-noday { height: 80px; border: 1px solid #e0e0e0; vertical-align: top; padding: 5px; font-size: 14px; box-sizing: border-box; }
+    .cal-noday { background-color: #fafafa; }
+    .cal-today { border: 2px solid #007bff; background-color: #e6f3ff; }
+    .cal-date { font-weight: bold; display: block; text-align: right; margin-bottom: 5px; }
+    .cal-events-list { margin-top: 5px; }
+    
+    /* イベントアイテムの基本設定 */
+    .cal-event-item { 
+        display: block; 
+        padding: 1px 4px; 
+        margin-bottom: 1px; 
+        border-radius: 3px; 
+        text-decoration: none; 
+        overflow: hidden; 
+        white-space: nowrap; 
+        text-overflow: ellipsis; 
+        font-size: 10px; 
+        /* ★重要: 文字色を白に統一 */
+        color: white !important; 
+    }
+
+    /* ★修正: 背景色を cal-event-item と組み合わせて優先度を上げる */
+    
+    /* 青色 (面接) */
+    .cal-event-item.cal-event-blue { 
+        background-color: #007bff !important; 
+    }
+
+    /* 緑色 (説明会) */
+    .cal-event-item.cal-event-green { 
+        background-color: #28a745 !important; 
+    }
+
+    /* 赤色 (自己分析) */
+    .cal-event-item.cal-event-red { 
+        background-color: #dc3545 !important; 
+    }
+
+    /* 黄色 (その他) */
+    .cal-event-item.cal-event-yellow { 
+        /* 白文字との対比のため、濃いめの色を維持 */
+        background-color: #ffc107 !important; 
+        /* 黄色は文字色を黒にしないと視認性が低い場合があるため、もし白文字で見えなければ color: #333 !important; に変更してください */
+    }
+</style>
+
 </head>
 <body>
     <div class="user-dashboard">
