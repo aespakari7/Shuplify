@@ -117,8 +117,16 @@ def add_event(request):
     
     else:
         # GETリクエスト（フォーム表示）
+        time_choices = []
+        for h in range(24):
+            for m in [0, 15, 30, 45]:
+                # 時刻を 'HH:MM' 形式でフォーマット
+                time_str = f"{h:02d}:{m:02d}"
+                time_choices.append(time_str)
+
         context = {
-            'today_date': date.today().strftime('%Y-%m-%d')
+            'today_date': date.today().strftime('%Y-%m-%d'),
+            'time_choices': time_choices,
         }
         return render(request, 'auth/add_event.html', context)
     
