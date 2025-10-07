@@ -56,17 +56,8 @@
             <button type="submit">イベントを登録</button>
         </form>
 
-        <a href="{% url 'top' %}" class="back-link">← TOPページ（カレンダー）へ戻る</a>
+        <a href="{% url 'top' %}" class="back-link">← TOPページへ戻る</a>
     </div>
-
-        <script>
-        function disableButton(form) {
-            // submitボタンを無効化し、ユーザーに処理中であることを伝える
-            document.getElementById('submit-button').disabled = true;
-            document.getElementById('submit-button').innerText = '登録中...';
-            return true; // フォームの送信を続行
-        }
-        </script>
 
 </body>
 </html>
