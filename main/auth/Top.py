@@ -1,7 +1,7 @@
 # main/auth/Top.py
 
 from django.shortcuts import render, redirect, get_object_or_404 # get_object_or_404 を追加
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from .models import CalendarEvent
 from .utils import CalendarUtil
 from django.contrib.auth.models import User 
@@ -80,13 +80,29 @@ def add_event(request):
         title = request.POST.get('title')
         memo = request.POST.get('memo')
         start_date = request.POST.get('start_date')
-        start_time = request.POST.get('start_time')
+        start_time_str = request.POST.get('start_time')
+        end_time_str = request.POST.get('end_time')
         color = request.POST.get('color')
         
-        if start_date and start_time:
-            start_datetime_str = f"{start_date} {start_time}"
+        # 開始日時が必須であることを確認
+        if start_date and start_time_str:
+            start_datetime_str = f"{start_date} {start_time_str}"
             try:
                 start_datetime = datetime.strptime(start_datetime_str, '%Y-%m-%d %H:%M')
+                
+                # ★ロジック修正: end_time の決定
+                if end_time_str:
+                    # 終了時刻がフォームから提供された場合
+                    end_datetime_str = f"{start_date} {end_time_str}"
+                    end_datetime = datetime.strptime(end_datetime_str, '%Y-%m-%d %H:%M')
+                    
+                    # 終了時刻が開始時刻より前の場合、開始時刻に1日加算して日付を修正する（任意）
+                    if end_datetime <= start_datetime:
+                        end_datetime += timedelta(days=1)
+                else:
+                    # 終了時刻が省略された場合、開始時刻の1時間後を自動設定
+                    end_datetime = start_datetime + timedelta(hours=1)
+                
             except ValueError:
                 return redirect('top') 
         else:
@@ -94,13 +110,11 @@ def add_event(request):
 
 
         # 重複防止ロジック
-        # 同じユーザー、同じ日時、同じタイトルのイベントが既に存在するかチェック
         if CalendarEvent.objects.filter(
             user_id=user_id,
             title=title,
             start_time=start_datetime
         ).exists():
-            # 重複が見つかった場合、作成せずにTOPへリダイレクト
             return redirect('top')
         
 
@@ -110,6 +124,7 @@ def add_event(request):
             title=title,
             memo=memo,
             start_time=start_datetime,
+            end_time=end_datetime, # 決定されたend_datetimeを使用
             color=color,
         )
         
@@ -117,16 +132,8 @@ def add_event(request):
     
     else:
         # GETリクエスト（フォーム表示）
-        time_choices = []
-        for h in range(24):
-            for m in [0, 15, 30, 45]:
-                # 時刻を 'HH:MM' 形式でフォーマット
-                time_str = f"{h:02d}:{m:02d}"
-                time_choices.append(time_str)
-
         context = {
             'today_date': date.today().strftime('%Y-%m-%d'),
-            'time_choices': time_choices,
         }
         return render(request, 'auth/add_event.html', context)
     
