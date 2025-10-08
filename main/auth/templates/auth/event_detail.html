@@ -23,8 +23,8 @@
         </button>
         </form>
 
-        <a href="{% url 'top' %}">
-            編集
+        <a href="{% url 'edit_event' event_id=event.calendar_id %}">
+            イベントを編集
         </a>
 
         <a href="{% url 'top' %}" class="back-link">TOPに戻る</a>
