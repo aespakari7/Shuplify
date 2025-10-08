@@ -184,3 +184,95 @@ def delete_event(request, event_id):
     
     # POSTメソッド以外でのアクセスは許可しない
     return redirect('top')
+
+# -----------------------------------------------------------------
+# ビュー: イベント編集
+# -----------------------------------------------------------------
+def edit_event(request, event_id):
+    """
+    既存のイベントを編集・更新するビュー。
+    """
+    user_id = get_current_user_id(request)
+
+    if user_id is None:
+        return redirect('top')
+
+    # ユーザーのイベントであることを確認し、イベントを取得
+    try:
+        # 編集するイベントを取得。ユーザーIDでフィルタすることで権限をチェック
+        event = CalendarEvent.objects.get(calendar_id=event_id, user_id=user_id)
+    except CalendarEvent.DoesNotExist:
+        # イベントが存在しない、またはユーザーのイベントではない場合、TOPへリダイレクト
+        return redirect('top')
+
+
+    if request.method == 'POST':
+        # ---------------------------
+        # POST処理: データ更新
+        # ---------------------------
+        title = request.POST.get('title')
+        memo = request.POST.get('memo')
+        start_date = request.POST.get('start_date')
+        start_time_str = request.POST.get('start_time')
+        end_time_str = request.POST.get('end_time')
+        color = request.POST.get('color')
+
+        if start_date and start_time_str:
+            start_datetime_str = f"{start_date} {start_time_str}"
+            try:
+                start_datetime = datetime.strptime(start_datetime_str, '%Y-%m-%d %H:%M')
+                
+                # 終了時刻の決定ロジック (add_eventと同じ)
+                if end_time_str:
+                    # 終了時刻がフォームから提供された場合
+                    end_datetime_str = f"{start_date} {end_time_str}"
+                    end_datetime = datetime.strptime(end_datetime_str, '%Y-%m-%d %H:%M')
+                    
+                    # 終了時刻が開始時刻より前の場合、開始時刻に1日加算する（日付またぎを想定）
+                    if end_datetime <= start_datetime:
+                        end_datetime += timedelta(days=1)
+                else:
+                    # 終了時刻が省略された場合、開始時刻の1時間後を自動設定
+                    end_datetime = start_datetime + timedelta(hours=1)
+                
+            except ValueError:
+                return redirect('top') # 日付・時刻フォーマットエラー時
+        else:
+            return redirect('top') # 必須フィールドがない場合
+
+        # ---------------------------
+        # イベントオブジェクトを更新し、保存
+        # ---------------------------
+        event.title = title
+        event.memo = memo
+        event.start_time = start_datetime
+        event.end_time = end_datetime
+        event.color = color
+        
+        event.save() # データベースに保存
+        
+        # 更新後、イベント詳細ページまたはTOPページへリダイレクト
+        # イベント詳細ページがあれば 'event_detail' にリダイレクトするのが自然です
+        return redirect('top') 
+        # return redirect('event_detail', event_id=event.calendar_id) 
+
+
+    else:
+        # ---------------------------
+        # GET処理: フォーム表示
+        # ---------------------------
+        
+        # 15分刻みの時刻リストは不要になったため、ここでは渡しません。
+        
+        # フォームの初期値として使用するコンテキスト
+        context = {
+            'event': event, # 既存のイベントオブジェクト
+            
+            # 日付と時刻をフォームの形式に合わせて抽出
+            'start_date_val': event.start_time.strftime('%Y-%m-%d'),
+            'start_time_val': event.start_time.strftime('%H:%M'),
+            'end_time_val': event.end_time.strftime('%H:%M') if event.end_time else None, 
+            'current_color': event.color,
+        }
+        
+        return render(request, 'auth/edit_event.html', context)

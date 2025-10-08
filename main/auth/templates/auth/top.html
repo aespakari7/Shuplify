@@ -51,9 +51,7 @@
 
     /* 黄色 (その他) */
     .cal-event-item.cal-event-yellow { 
-        /* 白文字との対比のため、濃いめの色を維持 */
         background-color: #ffc107 !important; 
-        /* 黄色は文字色を黒にしないと視認性が低い場合があるため、もし白文字で見えなければ color: #333 !important; に変更してください */
     }
 </style>
 
@@ -65,6 +63,24 @@
             <h1>管理項目</h1>
         </div>
         
+        <div class="task-section">
+            <h2>今日のタスク</h2>
+            <ul id="today-tasks-list">
+                {% if today_tasks %}
+                    {% for event in today_tasks %}
+                        <li>
+                            {{ event.title }} - {{ event.start_time|date:"H:i" }} 
+                            {% if event.memo %}<small>({{ event.memo }})</small>{% endif %}
+                        </li>
+                    {% empty %}
+                        <li>今日のタスクはありません。</li>
+                    {% endfor %}
+                {% else %}
+                    <li>今日のタスクはありません。</li>
+                {% endif %}
+            </ul>
+        </div>
+
         <div class="calendar-section">
             <h2 class="cal-month-header">{{ current_month_name }}</h2>
             <div id="calendar-area">
@@ -105,24 +121,6 @@
                 <img src="/static/images/company-manage-icon.png" alt="企業管理">
                 <p>企業管理</p>
             </a>
-        </div>
-        
-        <div class="task-section">
-            <h2>今日のタスク</h2>
-            <ul id="today-tasks-list">
-                {% if today_tasks %}
-                    {% for event in today_tasks %}
-                        <li>
-                            {{ event.title }} - {{ event.start_time|date:"H:i" }} 
-                            {% if event.memo %}<small>({{ event.memo }})</small>{% endif %}
-                        </li>
-                    {% empty %}
-                        <li>今日のタスクはありません。</li>
-                    {% endfor %}
-                {% else %}
-                    <li>今日のタスクはありません。</li>
-                {% endif %}
-            </ul>
         </div>
 
     </div>
