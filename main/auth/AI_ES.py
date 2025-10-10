@@ -73,7 +73,8 @@ def aies(request):
         except json.JSONDecodeError:
             return HttpResponseBadRequest("無効なJSON形式です。")
         except Exception as e:
-            print(f"Gemini API 呼び出しエラー: {e}")
-            return HttpResponseServerError(f"Gemini API 呼び出し中にエラーが発生しました: {e}")
+            error_message = f"Gemini API 呼び出し中にエラーが発生しました: {e}"
+            print(error_message)
+            return HttpResponseServerError({"error": error_message},status=500)
     else:
         return HttpResponseBadRequest("このエンドポイントはGETまたはPOSTリクエストのみをサポートしています。")
