@@ -31,8 +31,6 @@
         /* ★重要: 文字色を白に統一 */
         color: white !important; 
     }
-
-    /* ★修正: 背景色を cal-event-item と組み合わせて優先度を上げる */
     
     /* 青色 (面接) */
     .cal-event-item.cal-event-blue { 
@@ -82,29 +80,17 @@
         </div>
 
         <div class="calendar-section">
-            <h2 class="cal-month-header">{{ current_month_name }}</h2>
+            <div class="cal-navigation-header">
+                <a href="{% url 'top' %}{{ prev_url }}" class="nav-button">&lt;</a> 
+                <h2 class="cal-month-header">{{ current_month_name }}</h2>
+                <a href="{% url 'top' %}{{ next_url }}" class="nav-button">&gt;</a>
+            </div>
+            
             <div id="calendar-area">
                 {{ html_calendar|safe }} 
             </div>
         </div>
 
-        <div class="management-items">
-            <a href="{% url 'login' %}">
-                <img src="/static/images/profile-icon.png" alt="プロフィール">
-                <p>プロフィール</p>
-            </a>
-            <a href="{% url 'login' %}">
-                <img src="/static/images/ai-chat-icon.png" alt="AIチャット">
-                <p>AIチャット</p>
-            </a>
-            <a href="{% url 'login' %}">
-                <img src="/static/images/self-analysis-icon.png" alt="自己分析">
-                <p>自己分析</p>
-            </a>
-            <a href="{% url 'top' %}"> 
-                <img src="/static/images/calendar-icon.png" alt="カレンダー">
-                <p>カレンダー管理</p>
-            </a>
             <a href="{% url 'add_event' %}"> 
                 <img src="/static/images/add-icon.png" alt="イベント追加">
                 <p>イベント追加</p>
@@ -117,10 +103,7 @@
                 <img src="/static/images/mail-edit-icon.png" alt="メール添削">
                 <p>メール添削</p>
             </a>
-            <a href="{% url 'login' %}">
-                <img src="/static/images/company-manage-icon.png" alt="企業管理">
-                <p>企業管理</p>
-            </a>
+
         </div>
 
     </div>

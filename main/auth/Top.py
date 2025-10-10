@@ -31,36 +31,86 @@ def get_current_user_id(request):
 # ビュー: TOPページ (カレンダー表示)
 # -----------------------------------------------------------------
 def top(request):
-    """ TOPページの表示（カレンダーと今日のタスク） """
+    """ 
+    TOPページの表示（カレンダーと今日のタスク）。
+    URLパラメータ (year, month) に基づいて表示月を切り替える。
+    """
     
     user_id = get_current_user_id(request)
 
+    # ----------------------------------------------------
+    # ★表示する年月の決定ロジック
+    # ----------------------------------------------------
     today = date.today()
-    year = today.year
-    month = today.month
+    
+    # デフォルトは今日の日付
+    current_year = today.year
+    current_month = today.month
 
+    # URLパラメータから年と月を取得し、あれば上書き
+    year_str = request.GET.get('year')
+    month_str = request.GET.get('month')
+    
+    try:
+        if year_str and month_str:
+            current_year = int(year_str)
+            current_month = int(month_str)
+    except ValueError:
+        pass # パラメータが無効な場合は現在の年月を使用
+        
+    # カレンダーの表示月（1日を設定）
+    current_date = date(current_year, current_month, 1)
+
+    # ----------------------------------------------------
+    # ★ナビゲーション月の計算
+    # ----------------------------------------------------
+    
+    # 前月（< ボタン）の計算
+    prev_month = current_month - 1
+    prev_year = current_year
+    if prev_month == 0:
+        prev_month = 12
+        prev_year -= 1
+
+    # 次月（> ボタン）の計算
+    next_month = current_month + 1
+    next_year = current_year
+    if next_month == 13:
+        next_month = 1
+        next_year += 1
+        
+    # URLパラメータを作成
+    prev_url = f"?year={prev_year}&month={prev_month}"
+    next_url = f"?year={next_year}&month={next_month}"
+    
+    # ----------------------------------------------------
+    
     # フィルタリング用のクエリセットを準備
     if user_id is not None:
         all_events = CalendarEvent.objects.filter(user_id=user_id)
     else:
         all_events = CalendarEvent.objects.none()
 
-    # 今日のイベントのみをフィルタリング
+    # 今日のイベントのみをフィルタリング (表示月に関係なく、常に「今日」の日付を参照)
     today_events = all_events.filter(start_time__date=today).order_by('start_time')
     
     # 月間カレンダーを生成
-    cal = CalendarUtil(year, month)
+    cal = CalendarUtil(current_year, current_month) # ★URLから取得した年月を使用
     html_calendar = cal.format_month(all_events)
+    
+    # 月の名称を取得
+    current_month_name = current_date.strftime('%Y年 %m月')
+
 
     context = {
-        'current_month_name': today.strftime('%Y年%m月'),
+        'current_month_name': current_month_name,
         'html_calendar': html_calendar,
         'today_tasks': today_events,
         
-        # 不要なURL定義を削除し、必要なものだけ残すか、テンプレートで直接 {% url 'name' %} を使用
-        'urls': {
-             # ... 必要なURLがあればここに残す ...
-        }
+        # ★ナビゲーション用のURLを渡す
+        'prev_url': prev_url,
+        'next_url': next_url,
+        
     }
 
     return render(request, 'auth/top.html', context)
