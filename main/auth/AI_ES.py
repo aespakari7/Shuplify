@@ -56,7 +56,7 @@ def aies(request):
             chat_history.append({"role": "user", "parts": [user_message]})
 
             model = genai.GenerativeModel(
-                model_name="gemini-1.5-flash",
+                model_name="models/gemini-1.5-flash",
                 generation_config=generation_config,
                 safety_settings=safety_settings,
                 system_instruction=SYSTEM_PROMPT_ES
