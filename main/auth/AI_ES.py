@@ -75,6 +75,6 @@ def aies(request):
         except Exception as e:
             error_message = f"Gemini API 呼び出し中にエラーが発生しました: {e}"
             print(error_message)
-            return HttpResponseServerError({"error": error_message},status=500)
+            return JsonResponse({"error": error_message}, status=500)
     else:
         return HttpResponseBadRequest("このエンドポイントはGETまたはPOSTリクエストのみをサポートしています。")
