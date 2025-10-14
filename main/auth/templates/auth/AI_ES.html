@@ -45,6 +45,7 @@
         </div>
         <div id="input-area">
             <input type="text" id="user-input" placeholder="ESの文章を入力してください..." autocomplete="off">
+            <input type="file" id="file-input" placeholder="ファイル選択">
             <button id="send-button">送信</button>
         </div>
     </div>
@@ -52,6 +53,7 @@
         (function(){
             const sendButton = document.getElementById('send-button');
             const userInput = document.getElementById('user-input');
+            const fileInput = document.getElementById('file-input');
             const chatWindow = document.getElementById('chat-window');
 
             sendButton.addEventListener('click', sendMessage);

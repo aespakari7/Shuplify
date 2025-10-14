@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env'))
 
 # ES添削AI用のシステムプロンプト
-SYSTEM_PROMPT_ES = "あなたは就活専門のキャリアアドバイザーです。ES（エントリーシート）の内容を添削し、より魅力的になるように具体的にアドバイスしてください。出力形式はHTMLの改行を使用してください、箇条書きなども活用してください。"
+SYSTEM_PROMPT_ES = "あなたは就活専門のキャリアアドバイザーです。ES（エントリーシート）の内容を添削し、より魅力的になるように具体的にアドバイスしてください。表現の多様性を保つため、同じ言葉(漢字、ひらがな、カタカナを問わず)を二回連続で使用することは避けてください。出力形式は、【厳守】HTMLのタグ、Markdown記号、XMLなどのコードを一切使用しない、純粋なプレーンテキストとしてください。改行は標準の改行コードを使用してください。特に、 改行タグ（<br>）、太字タグ（<b>や<strong>）、斜体タグ（<i>や<em>）、リストタグ（<ul>や<ol>）、見出しタグ（<h1>など）を絶対に使用しないでください。改行は標準の改行コードを使用してください。箇条書きを活用する場合は、**全角記号（例：・、◆、★）**を用いて読みやすく整理してください。強調（太字にしたい部分）表現には、**【】（隅付き括弧）**を使用してください。例: 「自己PRの核となる部分は、【入社後に貢献できる具体的なスキル】です。」のように出力してください。"
 
 generation_config = {
     "temperature": 0.9,
@@ -56,7 +56,7 @@ def aies(request):
             chat_history.append({"role": "user", "parts": [user_message]})
 
             model = genai.GenerativeModel(
-                model_name="gemini-1.5-flash",
+                model_name="models/gemini-2.5-flash",
                 generation_config=generation_config,
                 safety_settings=safety_settings,
                 system_instruction=SYSTEM_PROMPT_ES
@@ -73,7 +73,8 @@ def aies(request):
         except json.JSONDecodeError:
             return HttpResponseBadRequest("無効なJSON形式です。")
         except Exception as e:
-            print(f"Gemini API 呼び出しエラー: {e}")
-            return HttpResponseServerError(f"Gemini API 呼び出し中にエラーが発生しました: {e}")
+            error_message = f"Gemini API 呼び出し中にエラーが発生しました: {e}"
+            print(error_message)
+            return JsonResponse({"error": error_message}, status=500)
     else:
         return HttpResponseBadRequest("このエンドポイントはGETまたはPOSTリクエストのみをサポートしています。")
