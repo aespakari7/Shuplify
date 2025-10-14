@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env'))
 
 # ES添削AI用のシステムプロンプト
-SYSTEM_PROMPT_ES = "あなたは就活専門のキャリアアドバイザーです。ES（エントリーシート）の内容を添削し、より魅力的になるように具体的にアドバイスしてください。出力形式はHTMLの改行を使用してください、箇条書きなども活用してください。"
+SYSTEM_PROMPT_ES = "あなたは就活専門のキャリアアドバイザーです。ES（エントリーシート）の内容を添削し、より魅力的になるように具体的にアドバイスしてください。出力形式は、HTMLのタグやコードを一切使用せず、通常のテキストとしてください。改行は標準の改行コードを使用してください。<br>などのHTMLタグは使用禁止です。箇条書きを活用する場合は、**全角記号（例：・、◆、★）**を用いて読みやすく整理してください。"
 
 generation_config = {
     "temperature": 0.9,
