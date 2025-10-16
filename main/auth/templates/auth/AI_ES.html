@@ -57,7 +57,7 @@
             const chatWindow = document.getElementById('chat-window');
 
             sendButton.addEventListener('click', sendMessage);
-            userInput.addEventListener('keypress', function(e){ if(e.key==='Enter') sendMessage(); });
+            userInput.addEventListener('keypress', function(e){ if(e.key==='Enter'){e.preventDefault(); sendMessage();} });
 
             function escapeAndFormat(text){ const el=document.createElement('div'); el.textContent=text; return el.innerHTML.replace(/\n/g,'<br>'); }
 
