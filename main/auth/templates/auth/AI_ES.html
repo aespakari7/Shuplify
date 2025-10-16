@@ -16,19 +16,46 @@
         .header{height:60px;background:linear-gradient(90deg,var(--accent),#2bd27a);color:white;display:flex;align-items:center;padding:0 16px;font-weight:600}
         .container{display:flex;flex-direction:column;height:calc(100vh - 60px)}
         #chat-window{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
-        .message{display:flex;align-items:flex-end;max-width:80%}
+        .message{display:flex;align-items:flex-end;max-width:90%;}
         .message.bot{justify-content:flex-start}
         .message.user{justify-content:flex-end;align-self:flex-end}
-        .avatar{width:36px;height:36px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-weight:700;margin-right:8px}
+        .avatar{width:36px;height:36px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-weight:700;margin-right:8px; flex-shrink: 0;}
         .avatar.bot{background:var(--bot-bubble);color:var(--accent);border:2px solid rgba(6,199,85,0.15)}
-        .bubble{padding:10px 14px;border-radius:18px;box-shadow:0 1px 0 rgba(0,0,0,0.06);line-height:1.4;white-space:pre-wrap}
-        .message.bot .bubble{background:var(--bot-bubble);border-top-left-radius:4px;border-top-right-radius:18px;border-bottom-right-radius:18px;color:#111}
-        .message.user .bubble{background:var(--user-bubble);color:#04311a;border-top-right-radius:4px;border-top-left-radius:18px;border-bottom-left-radius:18px}
+        .bubble{padding:10px 14px;border-radius:18px;box-shadow:0 1px 0 rgba(0,0,0,0.06);line-height:1.4;white-space:pre-wrap; max-width: 100%;}
+        .message.bot .bubble{background:var(--bot-bubble);border-top-left-radius:4px;border-top-right-radius:18px;border-bottom-right-radius:18px;color:#111; display: flex; flex-direction: column; gap: 8px;}
+        .message.user .bubble{background:var(--user-bubble);color:#04311a;border-top-right-radius:4px;border-top-left-radius:18px;border-bottom-left-radius:18px; max-width: 100%;}
         .meta{font-size:11px;color:#666;margin-top:4px}
-        #input-area{display:flex;padding:12px;gap:8px;background:transparent;border-top:1px solid rgba(0,0,0,0.06)}
-        #user-input{flex:1;padding:10px 12px;border-radius:20px;border:1px solid #ddd;background:white}
-        #send-button{background:var(--accent);color:white;border:none;padding:10px 14px;border-radius:18px;cursor:pointer}
-        @media(max-width:480px){#chat-window{padding:12px} .avatar{display:none}}
+        
+        /* フォームと入力エリアのスタイル */
+        #input-area{display:flex;padding:12px;gap:8px;background:white;border-top:1px solid rgba(0,0,0,0.06); align-items: center;}
+        #chat-form { display: flex; flex: 1; gap: 8px; align-items: center;} 
+        #user-input{flex:1;padding:10px 12px;border-radius:20px;border:1px solid #ddd;background:white;}
+        #send-button{background:var(--accent);color:white;border:none;padding:10px 14px;border-radius:18px;cursor:pointer; flex-shrink: 0; min-width: 50px;}
+        
+        /* ファイル入力関連 */
+        #file-input{display:none;}
+        .icon-button {
+            /* 画像アイコンをシンプルな絵文字で表現 */
+            background: none; border: none; padding: 0; cursor: pointer; color: var(--accent);
+            display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+            border-radius: 50%; transition: background-color 0.1s; flex-shrink: 0;
+            font-size: 24px; 
+        }
+        .icon-button:hover { background-color: rgba(6, 199, 85, 0.1);}
+        #file-status { font-size: 11px; color: #666; margin-left: 8px;}
+        
+        /* 画像プレビュー */
+        .user-image-preview { 
+            max-width: 100%; height: auto; border-radius: 12px; margin-top: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* レスポンシブ調整 */
+        @media(max-width:480px){
+            #chat-window{padding:12px} 
+            .avatar{display:none}
+            .message { max-width: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -43,47 +70,228 @@
                 </div>
             </div>
         </div>
+        
         <div id="input-area">
-            <input type="text" id="user-input" placeholder="ESの文章を入力してください..." autocomplete="off">
-            <input type="file" id="file-input" placeholder="ファイル選択">
-            <button id="send-button">送信</button>
+            <!-- ファイル選択トリガーボタン -->
+            <button id="file-button" class="icon-button" title="ESの画像を添付">
+                🖼️
+            </button>
+            <!-- 【重要】二重送信対策：formで全体を包み、submitイベントで送信処理を一本化 -->
+            <form id="chat-form"> 
+                <input type="text" id="user-input" placeholder="ESの文章を入力してください..." autocomplete="off">
+                <input type="file" id="file-input" accept="image/*" title="ファイルを選択">
+                <!-- type="submit"でボタンクリックとEnterキーの両方をsubmitイベントに紐づける -->
+                <button type="submit" id="send-button">送信</button>
+            </form>
+            <span id="file-status"></span>
         </div>
     </div>
+
     <script>
         (function(){
+            // --- 要素の取得 ---
+            const chatForm = document.getElementById('chat-form'); 
             const sendButton = document.getElementById('send-button');
             const userInput = document.getElementById('user-input');
             const fileInput = document.getElementById('file-input');
+            const fileButton = document.getElementById('file-button');
+            const fileStatus = document.getElementById('file-status');
             const chatWindow = document.getElementById('chat-window');
+            
+            // --- Helper Functions ---
+            // 応答テキスト内の改行を<br>に変換
+            function formatMessage(text){ const el=document.createElement('div'); el.textContent=text; return el.innerHTML.replace(/\n/g,'<br>'); }
+            // 時刻表示
+            function now(){ const d=new Date(); return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
 
-            sendButton.addEventListener('click', sendMessage);
-            userInput.addEventListener('keypress', function(e){ if(e.key==='Enter'){e.preventDefault(); sendMessage();} });
-
-            function escapeAndFormat(text){ const el=document.createElement('div'); el.textContent=text; return el.innerHTML.replace(/\n/g,'<br>'); }
-
-            function now(){ const d=new Date(); return d.toLocaleTimeString(); }
-
+            // AIメッセージ表示
             function appendBot(text){
                 const wrapper=document.createElement('div'); wrapper.className='message bot';
                 const avatar=document.createElement('div'); avatar.className='avatar bot'; avatar.textContent='G';
-                const inner=document.createElement('div'); const bubble=document.createElement('div'); bubble.className='bubble'; bubble.innerHTML=escapeAndFormat(text);
+                const inner=document.createElement('div'); 
+                const bubble=document.createElement('div'); bubble.className='bubble'; 
+                bubble.innerHTML = formatMessage(text);
+                
                 const meta=document.createElement('div'); meta.className='meta'; meta.textContent='Gemini • '+now(); inner.appendChild(bubble); inner.appendChild(meta);
-                wrapper.appendChild(avatar); wrapper.appendChild(inner); chatWindow.appendChild(wrapper); chatWindow.scrollTop=chatWindow.scrollHeight; return wrapper;
+                wrapper.appendChild(avatar); wrapper.appendChild(inner); 
+                
+                chatWindow.appendChild(wrapper);
+                chatWindow.scrollTop=chatWindow.scrollHeight; 
+                return wrapper;
             }
 
-            function appendUser(text){
-                const wrapper=document.createElement('div'); wrapper.className='message user'; const inner=document.createElement('div'); const bubble=document.createElement('div'); bubble.className='bubble'; bubble.textContent=text; const meta=document.createElement('div'); meta.className='meta'; meta.textContent='あなた • '+now(); inner.appendChild(bubble); inner.appendChild(meta); wrapper.appendChild(inner); chatWindow.appendChild(wrapper); chatWindow.scrollTop=chatWindow.scrollHeight; return wrapper;
+            // ユーザーメッセージ表示 (画像プレビュー対応)
+            function appendUser(text, fileUrl = null){
+                const wrapper=document.createElement('div'); wrapper.className='message user'; 
+                const inner=document.createElement('div'); 
+                const bubble=document.createElement('div'); bubble.className='bubble'; 
+                
+                // テキスト部分
+                const textPart = document.createElement('p');
+                textPart.textContent = text;
+                bubble.appendChild(textPart);
+
+                // 画像部分
+                if (fileUrl) {
+                    const img = document.createElement('img');
+                    img.src = fileUrl;
+                    img.alt = '添付ES画像';
+                    img.className = 'user-image-preview';
+                    bubble.appendChild(img);
+                }
+
+                const meta=document.createElement('div'); meta.className='meta'; meta.textContent='あなた • '+now(); 
+                inner.appendChild(bubble); inner.appendChild(meta); 
+                wrapper.appendChild(inner); 
+                chatWindow.appendChild(wrapper); 
+                chatWindow.scrollTop=chatWindow.scrollHeight; 
+                return wrapper;
             }
 
-            function setSending(s){ sendButton.disabled=s; userInput.disabled=s; sendButton.style.opacity = s?0.6:1; }
+            // 送信状態の切り替え
+            function setSending(s){ 
+                sendButton.disabled=s; 
+                userInput.disabled=s; 
+                fileButton.disabled=s;
+                sendButton.style.opacity = s?0.6:1; 
+                sendButton.textContent = s ? '中...' : '送信'; // 送信中UIフィードバック
+            }
 
-            function sendMessage(){ const message=userInput.value.trim(); if(!message) return; appendUser(message); userInput.value=''; setSending(true);
-                const typing = appendBot('...');
-                fetch('/main/auth/es-tutor/', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':(function(){const m=document.cookie.match(/csrftoken=([^;]+)/);return m?m[1]:'';})()}, body:JSON.stringify({message:message})})
-                .then(r=>r.json()).then(data=>{ chatWindow.removeChild(typing); if(data.response){ appendBot(data.response); } else { appendBot('エラー: AIからの応答がありませんでした。'); } })
-                .catch(e=>{ chatWindow.removeChild(typing); console.error(e); appendBot('エラーが発生しました: '+(e.message||e)); })
+            // --- API Call Logic (with Retry) ---
+            async function fetchWithRetry(url, options, retries = 5) {
+                for (let i = 0; i <= retries; i++) {
+                    try {
+                        const response = await fetch(url, options);
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        return response;
+                    } catch (error) {
+                        if (i === retries) throw error;
+                        // Exponential backoff
+                        const delay = 1000 * Math.pow(2, i);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            }
+            
+            // --- Core Send Message Logic ---
+            function performAPICall(message, imageData, mimeType, fileUrl = null) {
+                
+                // 1. UIの更新
+                setSending(true);
+                // ユーザーメッセージ表示 (画像があればプレビューも表示)
+                const userText = message.trim() || (fileUrl ? '添付されたES画像を添削してください。' : '...');
+                appendUser(userText, fileUrl); 
+                
+                // 入力欄をクリア
+                userInput.value = '';
+                fileInput.value = '';
+                fileStatus.textContent = '';
+
+
+                const typing = appendBot('添削中です...');
+                
+                const API_URL = '/main/auth/es-tutor/'; 
+                
+                // バックエンドに送るペイロード
+                const payload = {
+                    message: message,
+                    imageData: imageData, // Base64データ
+                    mimeType: mimeType    // MIMEタイプ
+                };
+
+                fetchWithRetry(API_URL, {
+                    method:'POST', 
+                    headers:{
+                        'Content-Type':'application/json',
+                        'X-CSRFToken':(function(){const m=document.cookie.match(/csrftoken=([^;]+)/);return m?m[1]:'';})()
+                    }, 
+                    body:JSON.stringify(payload)
+                })
+                .then(r=>r.json()).then(data=>{ 
+                    chatWindow.removeChild(typing); 
+                    if(data.response){ 
+                        appendBot(data.response); 
+                    } else if (data.error) {
+                         appendBot('エラーが発生しました: ' + data.error);
+                    } else { 
+                        appendBot('エラー: AIからの応答がありませんでした。'); 
+                    } 
+                })
+                .catch(e=>{ 
+                    chatWindow.removeChild(typing); 
+                    console.error("Fetch Error:", e); 
+                    appendBot('ネットワークまたはサーバーエラーが発生しました。'); 
+                })
                 .finally(()=> setSending(false));
             }
+
+
+            function sendMessage(){ 
+                const message = userInput.value.trim(); 
+                const file = fileInput.files[0];
+                
+                // テキストもファイルもない場合は何もしない
+                if (!message && !file) {
+                    return; 
+                }
+
+                // ファイルがある場合 (非同期処理: Base64変換が必要)
+                if (file) {
+                    if (!file.type.startsWith('image/')) {
+                        appendBot('現在、画像ファイル（JPEG, PNGなど）のみ対応しています。');
+                        fileInput.value = ''; 
+                        fileStatus.textContent = '';
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        const fileUrl = e.target.result; // 画像プレビュー用URL
+                        const base64Data = fileUrl.split(',')[1]; // Base64データ部分
+                        const mimeType = file.type;
+                        
+                        // APIコール実行 (画像データとメタデータを渡す)
+                        performAPICall(message, base64Data, mimeType, fileUrl);
+                    };
+
+                    reader.onerror = function() {
+                         appendBot('エラー: ファイルの読み込みに失敗しました。'); 
+                         fileInput.value = '';
+                         fileStatus.textContent = '';
+                    };
+
+                    // ファイルをBase64データURLとして読み込み開始
+                    reader.readAsDataURL(file);
+                    
+                } else {
+                    // ファイルがない場合 (同期処理)
+                    performAPICall(message, null, null, null);
+                }
+            }
+            
+            // --- Event Listeners ---
+            
+            // ファイル選択ボタンのクリック
+            fileButton.addEventListener('click', function() {
+                fileInput.click();
+            });
+
+            // ファイルが選択されたら、ファイル名を表示する
+            fileInput.addEventListener('change', function() {
+                if (fileInput.files.length > 0) {
+                    fileStatus.textContent = fileInput.files[0].name + ' が添付されました';
+                } else {
+                    fileStatus.textContent = '';
+                }
+            });
+            
+            // 【重要】フォーム送信を一本化し、二重送信を防ぐ
+            chatForm.addEventListener('submit', function(e) {
+                e.preventDefault(); // ブラウザのデフォルト動作（リロード）をキャンセル
+                sendMessage();
+            });
+            
         })();
     </script>
 </body>
