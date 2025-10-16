@@ -2,7 +2,7 @@ import os
 import json
 import base64 
 import google.generativeai as genai
-from google.generativeai.types import Part # 画像をAPIに渡すために必要
+from google.generativeai import Part # 画像をAPIに渡すために必要 (修正済み)
 from dotenv import load_dotenv
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from django.shortcuts import render
