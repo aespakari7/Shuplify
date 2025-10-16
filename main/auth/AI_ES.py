@@ -2,8 +2,9 @@ import os
 import json
 import base64 
 import google.generativeai as genai
+from google.generativeai import types, upload_file # upload_file を追加
+from google.generativeai.types import HarmCategory, HarmBlockThreshold 
 from dotenv import load_dotenv
-from google.generativeai.types import HarmCategory, HarmBlockThreshold,part #partをtypesモジュールから統合
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseServerError, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
@@ -57,10 +58,10 @@ def aies(request):
     chat_history = request.session.get('chat_history_es', [])
 
     if request.method == 'GET':
-        # HTMLファイル名が AI_ES.html に変わったため修正
         return render(request, 'auth/AI_ES.html', {'chat_history': chat_history})
 
     elif request.method == 'POST':
+        uploaded_file = None # アップロードされたファイルオブジェクトを保持する変数
         try:
             data = json.loads(request.body)
             user_message = data.get('message', '').strip()
@@ -73,11 +74,24 @@ def aies(request):
             # --- Gemini APIへの入力 (parts) を構築 ---
             parts = []
             
-            # 1. 画像データがあれば、Base64をデコードしてPartsに追加
+            # 1. 画像データがあれば、Base64をデコードしてテンポラリファイルを作成し、アップロード
             if image_data_base64 and mime_type:
+                import tempfile # テンポラリファイル作成のためにインポート
+                
                 # Base64デコード
                 image_bytes = base64.b64decode(image_data_base64)
-                parts.append(Part.from_bytes(data=image_bytes, mime_type=mime_type))
+                
+                # テンポラリファイルを作成し、バイトデータを書き込む
+                with tempfile.NamedTemporaryFile(delete=False, mode='wb', suffix=f".{mime_type.split('/')[-1]}") as tmp:
+                    tmp.write(image_bytes)
+                    temp_filepath = tmp.name
+
+                # ファイルをGeminiにアップロードし、Fileオブジェクトを取得
+                uploaded_file = genai.upload_file(file=temp_filepath, mime_type=mime_type)
+                parts.append(uploaded_file)
+                
+                # テンポラリファイルを削除 (try-finally で確実に削除)
+                os.unlink(temp_filepath)
                 
                 # 画像がある場合のプロンプトを調整
                 if not user_message:
@@ -120,5 +134,11 @@ def aies(request):
             error_message = f"Gemini API 呼び出し中にエラーが発生しました: {e}"
             print(error_message)
             return JsonResponse({"error": error_message}, status=500)
+        
+        finally:
+            # 最後にアップロードしたファイルを削除（非常に重要）
+            if uploaded_file:
+                genai.delete_file(name=uploaded_file.name)
+                
     else:
         return HttpResponseBadRequest("このエンドポイントはGETまたはPOSTリクエストのみをサポートしています。")
