@@ -2,9 +2,8 @@ import os
 import json
 import base64 
 import google.generativeai as genai
-from google.generativeai import Part # 画像をAPIに渡すために必要 (修正済み)
 from dotenv import load_dotenv
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
+from google.generativeai.types import HarmCategory, HarmBlockThreshold,part #partをtypesモジュールから統合
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseServerError, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
