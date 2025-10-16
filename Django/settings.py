@@ -33,9 +33,6 @@ ALLOWED_HOSTS = [
     '18.142.128.26',
     '54.254.162.138',
 
-    # ローカル用
-    '127.0.0.1',  
-    'localhost'
 ]
 
 # Application definition
