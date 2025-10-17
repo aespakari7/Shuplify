@@ -79,7 +79,7 @@
             <!-- 【重要】二重送信対策：formで全体を包み、submitイベントで送信処理を一本化 -->
             <form id="chat-form"> 
                 <input type="text" id="user-input" placeholder="ESの文章を入力してください..." autocomplete="off">
-                <input type="file" id="file-input" accept="image/*" title="ファイルを選択">
+                <input type="file" id="file-input" accept="image/*,.pdf,.xlsx" title="ファイルを選択">
                 <!-- type="submit"でボタンクリックとEnterキーの両方をsubmitイベントに紐づける -->
                 <button type="submit" id="send-button">送信</button>
             </form>
