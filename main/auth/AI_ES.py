@@ -1,10 +1,10 @@
-# C:\main\auth\AI_ES.py
-
 import os
 import json
+import base64 
 import google.generativeai as genai
+from google.generativeai import types, upload_file # upload_file を追加
+from google.generativeai.types import HarmCategory, HarmBlockThreshold 
 from dotenv import load_dotenv
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseServerError, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
@@ -12,11 +12,22 @@ from django.views.decorators.csrf import csrf_exempt
 # .env ファイルから環境変数を読み込む
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env'))
 
-# ES添削AI用のシステムプロンプト
-SYSTEM_PROMPT_ES = "あなたは就活専門のキャリアアドバイザーです。ES（エントリーシート）の内容を添削し、より魅力的になるように具体的にアドバイスしてください。表現の多様性を保つため、同じ言葉(漢字、ひらがな、カタカナを問わず)を二回連続で使用することは避けてください。出力形式は、【厳守】HTMLのタグ、Markdown記号、XMLなどのコードを一切使用しない、純粋なプレーンテキストとしてください。改行は標準の改行コードを使用してください。特に、 改行タグ（<br>）、太字タグ（<b>や<strong>）、斜体タグ（<i>や<em>）、リストタグ（<ul>や<ol>）、見出しタグ（<h1>など）を絶対に使用しないでください。改行は標準の改行コードを使用してください。箇条書きを活用する場合は、**全角記号（例：・、◆、★）**を用いて読みやすく整理してください。強調（太字にしたい部分）表現には、**【】（隅付き括弧）**を使用してください。例: 「自己PRの核となる部分は、【入社後に貢献できる具体的なスキル】です。」のように出力してください。"
+# ES添削AI用のシステムプロンプト (Markdown使用を指示し、読みやすいフィードバックを要求)
+SYSTEM_PROMPT_ES = """
+あなたは就活専門のキャリアアドバイザーです。
+ES（エントリーシート）の内容（入力テキストおよび添付画像）を添削し、より魅力的になるように具体的にアドバイスしてください。
+
+【出力形式の原則】
+1. **Markdownを使用**し、見出し、箇条書き、太字を活用して、添削結果を視覚的に分かりやすく構成してください。
+2. 添削内容は以下の3つの主要なセクションで構成してください。
+    - **【評価と総評】**: ESの強みと改善点を簡潔に総括する。
+    - **【具体的な改善案】**: 具体的な言葉遣い、エピソードの構成、企業への貢献度に焦点を当てたアドバイスを箇条書きで提供する。
+    - **【次のステップ】**: 添削後の質問や検討事項を提示し、より良いESを作成するための指針を与える。
+3. 表現の多様性を保つため、同じ言葉（漢字、ひらがな、カタカナを問わず）を二回連続で使用することは避けてください。
+"""
 
 generation_config = {
-    "temperature": 0.9,
+    "temperature": 0.5, 
     "top_p": 1,
     "top_k": 1,
     "max_output_tokens": 2048,
@@ -31,6 +42,7 @@ safety_settings = {
 
 @csrf_exempt
 def aies(request):
+    # APIキーの設定チェック
     API_KEY = os.getenv("GOOGLE_API_KEY")
     if not API_KEY:
         error_message = "サーバー設定エラー: GOOGLE_API_KEY が設定されていません。"
@@ -41,30 +53,76 @@ def aies(request):
             return render(request, 'auth/AI_ES.html', {'error': error_message})
 
     genai.configure(api_key=API_KEY)
+    
+    # セッションから履歴を取得
     chat_history = request.session.get('chat_history_es', [])
 
     if request.method == 'GET':
         return render(request, 'auth/AI_ES.html', {'chat_history': chat_history})
 
     elif request.method == 'POST':
+        uploaded_file = None # アップロードされたファイルオブジェクトを保持する変数
         try:
             data = json.loads(request.body)
             user_message = data.get('message', '').strip()
-            if not user_message:
-                return HttpResponseBadRequest("メッセージが提供されていません。")
+            image_data_base64 = data.get('imageData')
+            mime_type = data.get('mimeType')
 
-            chat_history.append({"role": "user", "parts": [user_message]})
+            if not user_message and not image_data_base64:
+                 return HttpResponseBadRequest("メッセージまたは画像が提供されていません。")
 
+            # --- Gemini APIへの入力 (parts) を構築 ---
+            parts = []
+            
+            # 1. 画像データがあれば、Base64をデコードしてテンポラリファイルを作成し、アップロード
+            if image_data_base64 and mime_type:
+                import tempfile # テンポラリファイル作成のためにインポート
+                
+                # Base64デコード
+                image_bytes = base64.b64decode(image_data_base64)
+                
+                # テンポラリファイルを作成し、バイトデータを書き込む
+                with tempfile.NamedTemporaryFile(delete=False, mode='wb', suffix=f".{mime_type.split('/')[-1]}") as tmp:
+                    tmp.write(image_bytes)
+                    temp_filepath = tmp.name
+
+                # ファイルをGeminiにアップロードし、Fileオブジェクトを取得
+                uploaded_file = genai.upload_file(file=temp_filepath, mime_type=mime_type)
+                parts.append(uploaded_file)
+                
+                # テンポラリファイルを削除 (try-finally で確実に削除)
+                os.unlink(temp_filepath)
+                
+                # 画像がある場合のプロンプトを調整
+                if not user_message:
+                     user_message = "この添付されたES画像の内容を添削してください。"
+                
+                # chat_historyには画像データは保存せず、画像が添付された旨をテキストで記録
+                chat_history.append({"role": "user", "parts": [f"[画像添付] {user_message}"]})
+            else:
+                # 画像がない場合は、テキストメッセージのみを履歴に追加
+                 chat_history.append({"role": "user", "parts": [user_message]})
+            
+            # 2. テキストメッセージをPartsに追加
+            parts.append(user_message)
+
+            # モデルの初期化
             model = genai.GenerativeModel(
-                model_name="models/gemini-2.5-flash",
+                model_name="gemini-2.5-flash",
                 generation_config=generation_config,
                 safety_settings=safety_settings,
                 system_instruction=SYSTEM_PROMPT_ES
             )
-            chat = model.start_chat(history=chat_history)
-            response = chat.send_message(user_message)
+            
+            # チャット履歴を渡し、画像とテキストを含むリクエストを送信
+            # 今回のメッセージ（parts）を除いた履歴を渡す
+            chat = model.start_chat(history=chat_history[:-1]) 
+            response = chat.send_message(parts)
+            
+            # 応答を履歴に追加
             chat_history.append({"role": "model", "parts": [response.text]})
 
+            # セッションを更新
             request.session['chat_history_es'] = chat_history
             request.session.modified = True
 
@@ -76,5 +134,11 @@ def aies(request):
             error_message = f"Gemini API 呼び出し中にエラーが発生しました: {e}"
             print(error_message)
             return JsonResponse({"error": error_message}, status=500)
+        
+        finally:
+            # 最後にアップロードしたファイルを削除（非常に重要）
+            if uploaded_file:
+                genai.delete_file(name=uploaded_file.name)
+                
     else:
         return HttpResponseBadRequest("このエンドポイントはGETまたはPOSTリクエストのみをサポートしています。")
