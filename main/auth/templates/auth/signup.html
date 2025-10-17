@@ -1,23 +1,27 @@
 <!DOCTYPE html>
 <head>
-  <title>login</title>
+  <title>signup</title>
 </head>
 <body>
-    <h1>ログイン</h1>
-    <form action="{% url 'login' %}" method="post">
+    <h1>サインアップ</h1>
+    <form action="{% url 'signup' %}" method="post">
         {% csrf_token %}
-        <p>メールアドレス：<br>
+        <p>mail：<br>
             <input type="email" name="email" id="mail" required>
         </p>
-        <p>パスワード：<br>
+        <p>password：<br>
             <input type="password" name="password" id="password" required>
         </p>
-        <p>
-            <button type="submit" id="loginbutton">ログイン</button>
+        <p>username：<br>
+            <input type="text" name="name" id="username" required>
         </p>
+        <p>
+        <button type="submit" id="signupbutton">signup</button>
+        </p>
+        {% if message %}
+        <p>{{ message }}</p>
+        {% endif %}
     </form>
-
-    
     <p>ログインはこちら</p>
     <a href="{% url 'login' %}">ログイン</a>
 </body>
