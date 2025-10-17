@@ -4,20 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ユーザーTOPページ</title>
-    </head>
+    <style>
+
+    /* お試しCSSあとで消す */
+    .calendar-section { margin-top: 30px; padding: 15px; border: 1px solid #ddd; }
+    .cal-month-header { text-align: center; font-size: 1.5em; margin-bottom: 15px; }
+    .cal-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .cal-header-day { text-align: center; padding: 10px 0; background-color: #f0f0f0; border: 1px solid #ccc; }
+    .cal-day, .cal-noday { height: 80px; border: 1px solid #e0e0e0; vertical-align: top; padding: 5px; font-size: 14px; box-sizing: border-box; }
+    .cal-noday { background-color: #fafafa; }
+    .cal-today { border: 2px solid #007bff; background-color: #e6f3ff; }
+    .cal-date { font-weight: bold; display: block; text-align: right; margin-bottom: 5px; }
+    .cal-events-list { margin-top: 5px; }
+    
+    /* イベントアイテムの基本設定 */
+    .cal-event-item { 
+        display: block; 
+        padding: 1px 4px; 
+        margin-bottom: 1px; 
+        border-radius: 3px; 
+        text-decoration: none; 
+        overflow: hidden; 
+        white-space: nowrap; 
+        text-overflow: ellipsis; 
+        font-size: 10px; 
+        /* ★重要: 文字色を白に統一 */
+        color: white !important; 
+    }
+    
+    /* 青色 (面接) */
+    .cal-event-item.cal-event-blue { 
+        background-color: #007bff !important; 
+    }
+
+    /* 緑色 (説明会) */
+    .cal-event-item.cal-event-green { 
+        background-color: #28a745 !important; 
+    }
+
+    /* 赤色 (自己分析) */
+    .cal-event-item.cal-event-red { 
+        background-color: #dc3545 !important; 
+    }
+
+    /* 黄色 (その他) */
+    .cal-event-item.cal-event-yellow { 
+        background-color: #ffc107 !important; 
+    }
+</style>
+
+</head>
 <body>
     <div class="user-dashboard">
 
         <div class="header">
             <h1>管理項目</h1>
         </div>
-
+        
         <div class="task-section">
             <h2>今日のタスク</h2>
             <ul id="today-tasks-list">
                 {% if today_tasks %}
                     {% for event in today_tasks %}
-                        <li>{{ event.title }} - {{ event.start_time|date:"H:i" }}</li>
+                        <li>
+                            {{ event.title }} - {{ event.start_time|date:"H:i" }} 
+                            {% if event.memo %}<small>({{ event.memo }})</small>{% endif %}
+                        </li>
                     {% empty %}
                         <li>今日のタスクはありません。</li>
                     {% endfor %}
@@ -27,40 +79,33 @@
             </ul>
         </div>
 
-        <div class="management-items">
-            <a href="/profile/">
-                <img src="/static/images/profile-icon.png" alt="プロフィール">
-                <p>プロフィール</p>
+        <div class="calendar-section">
+            <div class="cal-navigation-header">
+                <a href="{% url 'top' %}{{ prev_url }}" class="nav-button">先月</a> 
+                <h2 class="cal-month-header">{{ current_month_name }}</h2>
+                <a href="{% url 'top' %}{{ next_url }}" class="nav-button">来月</a>
+            </div>
+            
+            <div id="calendar-area">
+                {{ html_calendar|safe }} 
+            </div>
+        </div>
+
+            <a href="{% url 'add_event' %}"> 
+                <img src="/static/images/add-icon.png" alt="イベント追加">
+                <p>イベント追加</p>
             </a>
-            <a href="/chat/">
-                <img src="/static/images/ai-chat-icon.png" alt="AIチャット">
-                <p>AIチャット</p>
-            </a>
-            <a href="/self-analysis/">
-                <img src="/static/images/self-analysis-icon.png" alt="自己分析">
-                <p>自己分析</p>
-            </a>
-            <a href="/calendar-detail/">
-                <img src="/static/images/calendar-icon.png" alt="カレンダー">
-                <p>カレンダー</p>
-            </a>
-            <a href="/es-edit/">
+            <a href="{% url 'es_tutor' %}">
                 <img src="/static/images/es-edit-icon.png" alt="ES添削">
                 <p>ES添削</p>
             </a>
-            <a href="/company-analysis/">
-                <img src="/static/images/company-analysis-icon.png" alt="企業分析">
-                <p>企業分析</p>
-            </a>
-            <a href="/mail-edit/">
+            <a href="{% url 'email_tutor' %}">
                 <img src="/static/images/mail-edit-icon.png" alt="メール添削">
                 <p>メール添削</p>
             </a>
-            <a href="/company-manage/">
-                <img src="/static/images/company-manage-icon.png" alt="企業管理">
-                <p>企業管理</p>
-            </a>
+
         </div>
+
     </div>
 </body>
 </html>

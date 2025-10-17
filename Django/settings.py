@@ -31,7 +31,11 @@ ALLOWED_HOSTS = [
     'shuplify-nvgs.onrender.com',
     '13.228.225.19',
     '18.142.128.26',
-    '54.254.162.138'
+    '54.254.162.138',
+
+    # ローカル用
+    '127.0.0.1',  
+    'localhost'
 ]
 
 # Application definition
@@ -44,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    'main.auth.apps.MainAuthConfig',  
 ]
 
 MIDDLEWARE = [
