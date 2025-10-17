@@ -20,13 +20,13 @@
       </p>
     </form>
     <p>新規登録はこちら</p>
-    <a href="signup.html">新規登録</a>
+    <a href="{%url'signup'%}">新規登録</a>
   </body>
 </html>
 
 <script>
-    const supabaseUrl = 'https://xxxxx.supabase.co';
-    const supabaseKey = 'public-anon-key';
+    const supabaseUrl = 'https://uzoblakkftugdweloxku.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1NTA5MTksImV4cCI6MjA2MTEyNjkxOX0.l-CxOBeAyh1mYcJYaZR8Jh9NryPFoWPiYwYB0sl4bc0';
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     document.getElementById('login-form').addEventListener('submit', async function (e) {

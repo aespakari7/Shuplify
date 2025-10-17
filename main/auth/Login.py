@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
 SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1NTA5MTksImV4cCI6MjA2MTEyNjkxOX0.l-CxOBeAyh1mYcJYaZR8Jh9NryPFoWPiYwYB0sl4bc0"
 SUPABASE_LOGIN_URL = f"{SUPABASE_URL}/auth/v1/token?grant_type=password"
-
+SUPABASE_DB_INSERT_URL = f"{SUPABASE_URL}/rest/v1/users"
 # エラーメッセージ翻訳
 def get_translated_error_message(e):
     error_json = {}
