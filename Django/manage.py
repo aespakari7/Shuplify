@@ -3,9 +3,6 @@
 import os
 import sys
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
-sys.path.append(PROJECT_ROOT)
 
 def main():
     """Run administrative tasks."""

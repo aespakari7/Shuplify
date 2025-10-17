@@ -72,7 +72,7 @@ def signup(request):
                 },
                 json={
                     "email": email,
-                    "password": password
+                    "password": password,
                 }
             )
             # Authへのリクエストが200番台でなかったらエラーを発生させる
@@ -118,7 +118,8 @@ def signup(request):
                 json={
                     "email": email,
                     "name": name,
-                    "password": password
+                    "password": password,
+                    "is_admin_flag": 0
                 }
             )
             # usersテーブルへの挿入が200番台でなかったらエラーを発生させる
