@@ -72,7 +72,7 @@ def signup(request):
                 },
                 json={
                     "email": email,
-                    "password": password
+                    "password": password,
                 }
             )
             # Authへのリクエストが200番台でなかったらエラーを発生させる
@@ -118,10 +118,31 @@ def signup(request):
                 json={
                     "email": email,
                     "name": name,
-                    "password": password
+                    "password": password,
+                    # use JSON boolean false instead of 0 to ensure proper boolean insert
+                    "is_admin_flag": False
                 }
             )
-            # usersテーブルへの挿入が200番台でなかったらエラーを発生させる
+            # HTTPエラーを検出する（200番台でなければ例外を投げる）
+            insert_response.raise_for_status()
+
+            # 挿入結果を確認（Prefer: return=representation が有効なら挿入されたレコードが返る）
+            try:
+                created = insert_response.json()
+            except ValueError:
+                created = None
+
+            # デバッグ: サーバが受け取った値を確認する
+            print('Supabase insert response status:', insert_response.status_code)
+            print('Supabase insert response body:', created)
+
+            # created が存在し、is_admin_flag が明示的に設定されていない場合は警告
+            if created:
+                # PostgREST はリストで返すことが多いので対応
+                rec = created[0] if isinstance(created, list) and len(created) > 0 else created
+                if rec.get('is_admin_flag') is None:
+                    print('Warning: is_admin_flag is NULL in returned record')
+
             return redirect('confirm_email')
 
         except requests.exceptions.HTTPError as e:
