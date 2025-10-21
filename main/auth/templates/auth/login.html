@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>ログイン</h1>
-    <form action="top.html" method="post">
+   <form action="{% url 'top' %}" method="post">
       <p>
         メールアドレス<br />
         <input type="email" name="username" required />
@@ -23,34 +23,5 @@
     <a href="{%url'signup'%}">新規登録</a>
   </body>
 </html>
-
-<script>
-    const supabaseUrl =  'https://uzoblakkftugdweloxku.supabase.co';
-    const supabaseKey =  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1NTA5MTksImV4cCI6MjA2MTEyNjkxOX0.l-CxOBeAyh1mYcJYaZR8Jh9NryPFoWPiYwYB0sl4bc0';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-    document.getElementById('login-form').addEventListener('submit', async function (e) {
-      e.preventDefault(); 
-
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
-
-      const msg = document.getElementById('message');
-      if (error) {
-        msg.textContent = 'ログインに失敗しました: ' + error.message;
-        msg.style.color = 'red';
-      } else {
-        msg.textContent = 'ログイン成功！';
-        msg.style.color = 'green';
-      
-        window.location.href = 'top.html';
-      }
-    });
-  </script>
 </body>
 </html>
