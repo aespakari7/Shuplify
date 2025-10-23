@@ -33,22 +33,17 @@ ALLOWED_HOSTS = [
     '18.142.128.26',
     '54.254.162.138',
 
-    # ローカル用
-    '127.0.0.1',  
-    'localhost'
 ]
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
-    'main.auth.apps.MainAuthConfig',  
 ]
 
 MIDDLEWARE = [
