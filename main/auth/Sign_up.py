@@ -119,8 +119,7 @@ def signup(request):
                     "email": email,
                     "name": name,
                     "password": password,
-                    # use JSON boolean false instead of 0 to ensure proper boolean insert
-                    "is_admin_flag": False
+                    "is_admin_flag": 0
                 }
             )
             # HTTPエラーを検出する（200番台でなければ例外を投げる）
