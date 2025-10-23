@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ES添削AI</title>
     <style>
+        /* <style> の内容は変更ありません */
         :root{
             --bg: #f0f3f5;
             --accent: #06c755; /* ES: green */
@@ -26,16 +27,13 @@
         .message.user .bubble{background:var(--user-bubble);color:#04311a;border-top-right-radius:4px;border-top-left-radius:18px;border-bottom-left-radius:18px; max-width: 100%;}
         .meta{font-size:11px;color:#666;margin-top:4px}
         
-        /* フォームと入力エリアのスタイル */
         #input-area{display:flex;padding:12px;gap:8px;background:white;border-top:1px solid rgba(0,0,0,0.06); align-items: center;}
         #chat-form { display: flex; flex: 1; gap: 8px; align-items: center;} 
         #user-input{flex:1;padding:10px 12px;border-radius:20px;border:1px solid #ddd;background:white;}
         #send-button{background:var(--accent);color:white;border:none;padding:10px 14px;border-radius:18px;cursor:pointer; flex-shrink: 0; min-width: 50px;}
         
-        /* ファイル入力関連 */
         #file-input{display:none;}
         .icon-button {
-            /* 画像アイコンをシンプルな絵文字で表現 */
             background: none; border: none; padding: 0; cursor: pointer; color: var(--accent);
             display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;
             border-radius: 50%; transition: background-color 0.1s; flex-shrink: 0;
@@ -44,13 +42,11 @@
         .icon-button:hover { background-color: rgba(6, 199, 85, 0.1);}
         #file-status { font-size: 11px; color: #666; margin-left: 8px;}
         
-        /* 画像プレビュー */
         .user-image-preview { 
             max-width: 100%; height: auto; border-radius: 12px; margin-top: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* レスポンシブ調整 */
         @media(max-width:480px){
             #chat-window{padding:12px} 
             .avatar{display:none}
@@ -72,15 +68,15 @@
         </div>
         
         <div id="input-area">
-            <!-- ファイル選択トリガーボタン -->
-            <button id="file-button" class="icon-button" title="ESの画像を添付">
+            <button id="file-button" class="icon-button" title="ESの画像やファイルを添付">
                 🖼️
             </button>
-            <!-- 【重要】二重送信対策：formで全体を包み、submitイベントで送信処理を一本化 -->
             <form id="chat-form"> 
                 <input type="text" id="user-input" placeholder="ESの文章を入力してください..." autocomplete="off">
-                <input type="file" id="file-input" accept="image/*,.pdf,.xlsx" title="ファイルを選択">
-                <!-- type="submit"でボタンクリックとEnterキーの両方をsubmitイベントに紐づける -->
+                
+                <input type="file" id="file-input" 
+                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" 
+                       title="ファイルを選択">
                 <button type="submit" id="send-button">送信</button>
             </form>
             <span id="file-status"></span>
@@ -99,40 +95,34 @@
             const chatWindow = document.getElementById('chat-window');
             
             // --- Helper Functions ---
-            // 応答テキスト内の改行を<br>に変換
             function formatMessage(text){ const el=document.createElement('div'); el.textContent=text; return el.innerHTML.replace(/\n/g,'<br>'); }
-            // 時刻表示
             function now(){ const d=new Date(); return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
 
-            // AIメッセージ表示
+            // AIメッセージ表示 (変更なし)
             function appendBot(text){
                 const wrapper=document.createElement('div'); wrapper.className='message bot';
                 const avatar=document.createElement('div'); avatar.className='avatar bot'; avatar.textContent='G';
                 const inner=document.createElement('div'); 
                 const bubble=document.createElement('div'); bubble.className='bubble'; 
                 bubble.innerHTML = formatMessage(text);
-                
                 const meta=document.createElement('div'); meta.className='meta'; meta.textContent='Gemini • '+now(); inner.appendChild(bubble); inner.appendChild(meta);
                 wrapper.appendChild(avatar); wrapper.appendChild(inner); 
-                
                 chatWindow.appendChild(wrapper);
                 chatWindow.scrollTop=chatWindow.scrollHeight; 
                 return wrapper;
             }
 
-            // ユーザーメッセージ表示 (画像プレビュー対応)
+            // ユーザーメッセージ表示 (変更なし、fileUrl が null なら画像を表示しない)
             function appendUser(text, fileUrl = null){
                 const wrapper=document.createElement('div'); wrapper.className='message user'; 
                 const inner=document.createElement('div'); 
                 const bubble=document.createElement('div'); bubble.className='bubble'; 
                 
-                // テキスト部分
                 const textPart = document.createElement('p');
                 textPart.textContent = text;
                 bubble.appendChild(textPart);
 
-                // 画像部分
-                if (fileUrl) {
+                if (fileUrl) { // fileUrl (画像プレビューURL) がある場合のみ img を追加
                     const img = document.createElement('img');
                     img.src = fileUrl;
                     img.alt = '添付ES画像';
@@ -148,16 +138,16 @@
                 return wrapper;
             }
 
-            // 送信状態の切り替え
+            // 送信状態の切り替え (変更なし)
             function setSending(s){ 
                 sendButton.disabled=s; 
                 userInput.disabled=s; 
                 fileButton.disabled=s;
                 sendButton.style.opacity = s?0.6:1; 
-                sendButton.textContent = s ? '中...' : '送信'; // 送信中UIフィードバック
+                sendButton.textContent = s ? '中...' : '送信'; 
             }
 
-            // --- API Call Logic (with Retry) ---
+            // API Call Logic (with Retry) (変更なし)
             async function fetchWithRetry(url, options, retries = 5) {
                 for (let i = 0; i <= retries; i++) {
                     try {
@@ -166,7 +156,6 @@
                         return response;
                     } catch (error) {
                         if (i === retries) throw error;
-                        // Exponential backoff
                         const delay = 1000 * Math.pow(2, i);
                         await new Promise(resolve => setTimeout(resolve, delay));
                     }
@@ -174,29 +163,28 @@
             }
             
             // --- Core Send Message Logic ---
-            function performAPICall(message, imageData, mimeType, fileUrl = null) {
+            // (修正: fileUrl の代わりに previewUrl を使う)
+            function performAPICall(message, imageData, mimeType, previewUrl = null) {
                 
-                // 1. UIの更新
                 setSending(true);
-                // ユーザーメッセージ表示 (画像があればプレビューも表示)
-                const userText = message.trim() || (fileUrl ? '添付されたES画像を添削してください。' : '...');
-                appendUser(userText, fileUrl); 
                 
-                // 入力欄をクリア
+                // (修正: imageData があるかどうかで判断)
+                const userText = message.trim() || (imageData ? '添付ファイルを添削してください。' : '...');
+                // (修正: previewUrl を渡す)
+                appendUser(userText, previewUrl); 
+                
                 userInput.value = '';
                 fileInput.value = '';
                 fileStatus.textContent = '';
-
 
                 const typing = appendBot('添削中です...');
                 
                 const API_URL = '/main/auth/es-tutor/'; 
                 
-                // バックエンドに送るペイロード
                 const payload = {
                     message: message,
-                    imageData: imageData, // Base64データ
-                    mimeType: mimeType    // MIMEタイプ
+                    imageData: imageData, // Base64データ (ファイルの実体)
+                    mimeType: mimeType   // MIMEタイプ
                 };
 
                 fetchWithRetry(API_URL, {
@@ -212,7 +200,7 @@
                     if(data.response){ 
                         appendBot(data.response); 
                     } else if (data.error) {
-                         appendBot('エラーが発生しました: ' + data.error);
+                        appendBot('エラーが発生しました: ' + data.error);
                     } else { 
                         appendBot('エラー: AIからの応答がありませんでした。'); 
                     } 
@@ -225,59 +213,55 @@
                 .finally(()=> setSending(false));
             }
 
-
+            // (修正: ファイル形式チェックを削除し、プレビューロジックを変更)
             function sendMessage(){ 
                 const message = userInput.value.trim(); 
                 const file = fileInput.files[0];
                 
-                // テキストもファイルもない場合は何もしない
                 if (!message && !file) {
                     return; 
                 }
 
-                // ファイルがある場合 (非同期処理: Base64変換が必要)
                 if (file) {
-                    if (!file.type.startsWith('image/')) {
-                        appendBot('現在、画像ファイル（JPEG, PNGなど）のみ対応しています。');
-                        fileInput.value = ''; 
-                        fileStatus.textContent = '';
-                        return;
-                    }
+                    // ▼▼▼ 修正点 2: ファイル形式チェックを削除 ▼▼▼
+                    // if (!file.type.startsWith('image/')) { ... } のブロックを削除
+                    // ▲▲▲ 修正点 2 ▲▲▲
                     
                     const reader = new FileReader();
                     
                     reader.onload = function(e) {
-                        const fileUrl = e.target.result; // 画像プレビュー用URL
-                        const base64Data = fileUrl.split(',')[1]; // Base64データ部分
+                        const fileDataUrl = e.target.result; // Base64 Data URL
+                        const base64Data = fileDataUrl.split(',')[1]; // Base64データ部分
                         const mimeType = file.type;
                         
-                        // APIコール実行 (画像データとメタデータを渡す)
-                        performAPICall(message, base64Data, mimeType, fileUrl);
+                        // ▼▼▼ 修正点 3: プレビューURLを決定 (画像のみ) ▼▼▼
+                        const previewUrl = file.type.startsWith('image/') ? fileDataUrl : null;
+                        
+                        // APIコール実行 (base64Data と previewUrl を渡す)
+                        performAPICall(message, base64Data, mimeType, previewUrl);
+                        // ▲▲▲ 修正点 3 ▲▲▲
                     };
 
                     reader.onerror = function() {
-                         appendBot('エラー: ファイルの読み込みに失敗しました。'); 
-                         fileInput.value = '';
-                         fileStatus.textContent = '';
+                        appendBot('エラー: ファイルの読み込みに失敗しました。'); 
+                        fileInput.value = '';
+                        fileStatus.textContent = '';
                     };
 
-                    // ファイルをBase64データURLとして読み込み開始
                     reader.readAsDataURL(file);
                     
                 } else {
-                    // ファイルがない場合 (同期処理)
+                    // ファイルがない場合
                     performAPICall(message, null, null, null);
                 }
             }
             
-            // --- Event Listeners ---
+            // --- Event Listeners --- (変更なし)
             
-            // ファイル選択ボタンのクリック
             fileButton.addEventListener('click', function() {
                 fileInput.click();
             });
 
-            // ファイルが選択されたら、ファイル名を表示する
             fileInput.addEventListener('change', function() {
                 if (fileInput.files.length > 0) {
                     fileStatus.textContent = fileInput.files[0].name + ' が添付されました';
@@ -286,13 +270,12 @@
                 }
             });
             
-            // 【重要】フォーム送信を一本化し、二重送信を防ぐ
             chatForm.addEventListener('submit', function(e) {
-                e.preventDefault(); // ブラウザのデフォルト動作（リロード）をキャンセル
+                e.preventDefault(); 
                 sendMessage();
             });
             
         })();
     </script>
-</body>
+    </body>
 </html>
