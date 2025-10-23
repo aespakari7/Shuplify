@@ -24,7 +24,7 @@ def get_translated_error_message(response_json):
         return "ログインに失敗しました。入力内容を確認してください。"
 
 
-# --- CSRF保護有効（安全） ---
+
 @csrf_protect
 def login(request):
     if request.method == "POST":
