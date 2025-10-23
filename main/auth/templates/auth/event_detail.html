@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ event.title }} 詳細</title>
+</head>
+<body>
+    <div class="detail-container">
+        <h1>{{ event.title }}</h1>
+        
+        <h2>イベント詳細: {{ event.title }}</h2>
+        <p>日付: {{ event.start_time|date:"Y年m月d日" }}</p>
+        <p>時間: {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</p>
+        <p>メモ: {{ event.memo }}</p>
+        
+        <hr>
+
+        <form method="post" action="{% url 'delete_event' event_id=event.calendar_id %}" onsubmit="return confirm('本当にこのイベントを削除しますか？');">
+        {% csrf_token %}
+        <button type="submit">
+            削除
+        </button>
+        </form>
+
+        <a href="{% url 'edit_event' event_id=event.calendar_id %}">
+            イベントを編集
+        </a>
+
+        <a href="{% url 'top' %}" class="back-link">TOPに戻る</a>
+    </div>
+</body>
+</html>
