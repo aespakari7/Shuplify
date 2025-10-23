@@ -2,13 +2,14 @@ import os
 import json
 import base64 
 import google.generativeai as genai
-from google.generativeai import types, upload_file
+# types を Blob のためにインポートします
+from google.generativeai import types, upload_file 
 from google.generativeai.types import HarmCategory, HarmBlockThreshold 
 from dotenv import load_dotenv
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseServerError, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
-import tempfile # tempfile をインポート
+# import tempfile # 修正: 不要になるため削除
 
 # .env ファイルから環境変数を読み込む
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env'))
@@ -55,22 +56,18 @@ def aies(request):
 
     genai.configure(api_key=API_KEY)
     
-    # セッションから履歴を取得 (変更なし)
     chat_history = request.session.get('chat_history_es', [])
 
     if request.method == 'GET':
         return render(request, 'auth/AI_ES.html', {'chat_history': chat_history})
 
-    # ▼▼▼ 修正点: POST処理全体を修正 ▼▼▼
+    # ▼▼▼ 修正: POST処理全体を修正 (upload_file をやめて Blob を使う) ▼▼▼
     elif request.method == 'POST':
-        uploaded_file = None # Google File API オブジェクト
-        temp_filepath = None # サーバー上の一時ファイルパス
-
+        # uploaded_file や temp_filepath 変数は不要
+        
         try:
             data = json.loads(request.body)
             user_message = data.get('message', '').strip()
-            
-            # (推奨) 変数名を imageData -> file_data_base64 に変更
             file_data_base64 = data.get('imageData') 
             mime_type = data.get('mimeType')
 
@@ -79,43 +76,24 @@ def aies(request):
 
             parts = []
             
-            # --- ファイル処理 ---
+            # --- ファイル処理 (Blob を使用) ---
             if file_data_base64 and mime_type:
                 
                 try:
-                    # (修正点 3) Base64デコードとエラーハンドリング
+                    # Base64をデコードしてバイトデータを取得
                     file_bytes = base64.b64decode(file_data_base64)
                 except (base64.binascii.Error, ValueError) as e:
                     return HttpResponseBadRequest(f"無効なBase64データ形式です: {e}")
 
-                # 拡張子を決定 (デバッグ用、無くても良い)
-                extension_map = {
-                    'application/pdf': 'pdf',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-                    'application/msword': 'doc',
-                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
-                    'application/vnd.ms-excel': 'xls',
-                    'text/plain': 'txt'
-                }
-                if mime_type.startswith('image/'):
-                    suffix = f".{mime_type.split('/')[-1].split('+')[0]}" #例: image/svg+xml
-                else:
-                    suffix = f".{extension_map.get(mime_type, 'bin')}"
-
-                # テンポラリファイルを作成し、バイトデータを書き込む
-                with tempfile.NamedTemporaryFile(delete=False, mode='wb', suffix=suffix) as tmp:
-                    tmp.write(file_bytes)
-                    temp_filepath = tmp.name # パスを記憶
-
-                # (修正点 1) ファイルをGeminiにアップロード (引数を 'path' に修正)
-                uploaded_file = genai.upload_file(path=temp_filepath, mime_type=mime_type)
-                parts.append(uploaded_file)
+                # 修正: types.Blob を作成して parts に追加
+                # これでファイルデータをリクエストに直接埋め込む
+                parts.append(types.Blob(
+                    mime_type=mime_type,
+                    data=file_bytes
+                ))
                 
-                # (修正点 2) アップロード後、テンポラリファイルを即座に削除
-                os.unlink(temp_filepath)
-                temp_filepath = None # 削除したので None に戻す
+                # 修正: tempfile, upload_file, os.unlink の処理はすべて不要
 
-                # メッセージがない場合は、ファイルタイプを補足
                 if not user_message:
                     user_message = f"この添付ファイル（{mime_type}）の内容を添削してください。"
                 
@@ -130,7 +108,7 @@ def aies(request):
 
             # --- モデルの初期化とAPI呼び出し ---
             model = genai.GenerativeModel(
-                model_name="gemini-1.5-flash", # (推奨) 1.5-flash または 1.5-pro がファイル処理に強い
+                model_name="gemini-1.5-flash", # (ファイル処理に強いモデル)
                 generation_config=generation_config,
                 safety_settings=safety_settings,
                 system_instruction=SYSTEM_PROMPT_ES
@@ -139,10 +117,7 @@ def aies(request):
             chat = model.start_chat(history=chat_history[:-1]) 
             response = chat.send_message(parts)
             
-            # 応答を履歴に追加
             chat_history.append({"role": "model", "parts": [response.text]})
-
-            # セッションを更新
             request.session['chat_history_es'] = chat_history
             request.session.modified = True
 
@@ -152,23 +127,15 @@ def aies(request):
             return HttpResponseBadRequest("無効なJSON形式です。")
         except Exception as e:
             error_message = f"Gemini API 呼び出し中にエラーが発生しました: {e}"
-            print(error_message)
-            return JsonResponse({"error": error_message}, status=500)
+            print(error_message) # サーバーログには詳細なエラーを残す
+            # ユーザーには 'ragStoreName' のような内部エラーは見せない
+            return JsonResponse({"error": "AIモデルの呼び出し中にエラーが発生しました。"}, status=500)
         
         finally:
-            # (修正点 2) 途中でエラーが発生した場合に備え、テンポラリファイルが残っていれば削除
-            if temp_filepath and os.path.exists(temp_filepath):
-                print(f"クリーンアップ: 残存した一時ファイル {temp_filepath} を削除します。")
-                os.unlink(temp_filepath)
-                
-            # (修正点 2) Google側にアップロードしたファイルを削除（非常に重要）
-            if uploaded_file:
-                try:
-                    genai.delete_file(name=uploaded_file.name)
-                except Exception as e:
-                    # ここでのエラーはログに残すが、クライアントには影響させない
-                    print(f"警告: Google File APIからのファイル削除に失敗しました (Name: {uploaded_file.name}): {e}")
-    # ▲▲▲ 修正点 ▲▲▲
+            # 修正: upload_file を使っていないので、クリーンアップは不要
+            # (ログに出ていた 'クリーンアップ: ...' の処理も不要になる)
+            pass
+    # ▲▲▲ 修正 ▲▲▲
             
     else:
         return HttpResponseBadRequest("このエンドポイントはGETまたはPOSTリクエストのみをサポートしています。")
