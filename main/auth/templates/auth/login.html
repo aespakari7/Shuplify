@@ -8,6 +8,7 @@
     <h1>ログイン</h1>
    <form action="{% url 'top' %}" method="post">
       <p>
+         {% csrf_token %}
         メールアドレス<br />
         <input type="email" name="username" required />
       </p>
