@@ -4,12 +4,14 @@ from django.shortcuts import render
 
 # ユーザー管理画面 (管理者ログイン後の開始画面)
 def user_management(request):
-    """ユーザー管理画面を表示"""
-    # templates/Admin/admin_user.html を参照
+    """
+    ユーザー管理画面を表示する。
+    テンプレート: Admin/admin_user.html
+    """
     context = {
         'message': 'ユーザー管理画面',
+        # 画面遷移の骨組みとして必要なダミーデータとURL名
         'users_list': ['User A', 'Admin X', 'User B'],
-        # リダイレクト先として、自分自身（admin_users）とプロンプト管理（admin_prompts）のURL名を渡す
         'user_management_url': 'admin_users',
         'prompt_management_url': 'admin_prompts',
     }
@@ -17,12 +19,14 @@ def user_management(request):
 
 # プロンプト管理画面
 def prompt_management(request):
-    """プロンプト管理画面を表示"""
-    # templates/Admin/admin_prompt.html を参照
+    """
+    プロンプト管理画面を表示する。
+    テンプレート: Admin/admin_prompt.html
+    """
     context = {
         'message': 'プロンプト管理画面',
+        # 画面遷移の骨組みとして必要なダミーデータとURL名
         'prompts_list': ['プロンプト1', 'プロンプト2'],
-        # ナビゲーション用にURL名を渡す
         'user_management_url': 'admin_users',
         'prompt_management_url': 'admin_prompts',
     }
