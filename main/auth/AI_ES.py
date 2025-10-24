@@ -108,7 +108,7 @@ def aies(request):
 
             # --- モデルの初期化とAPI呼び出し ---
             model = genai.GenerativeModel(
-                model_name="gemini-1.5-flash", # (ファイル処理に強いモデル)
+                model_name="gemini-1.5-pro-latest", # (ファイル処理に強いモデル)
                 generation_config=generation_config,
                 safety_settings=safety_settings,
                 system_instruction=SYSTEM_PROMPT_ES
