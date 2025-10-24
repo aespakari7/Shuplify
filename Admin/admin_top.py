@@ -35,7 +35,7 @@ def user_management(request):
     try:
         # requests.get を使用してデータを取得 (idとnameのみを選択)
         response = requests.get(
-            f"{SUPABASE_DB_URL}?select=id,name", 
+            f"{SUPABASE_DB_URL}?select=user_id,name", 
             headers={
                 "apikey": SUPABASE_API_KEY, 
                 "Authorization": f"Bearer {SUPABASE_API_KEY}",
@@ -71,7 +71,7 @@ def delete_user(request):
             try:
                 # requests.delete を使用してレコードを削除
                 delete_response = requests.delete(
-                    f"{SUPABASE_DB_URL}?id=eq.{user_id}", # idがuser_idに等しいレコードを削除
+                    f"{SUPABASE_DB_URL}?user_id=eq.{user_id}", # idがuser_idに等しいレコードを削除
                     headers={
                         "apikey": SUPABASE_API_KEY,
                         "Authorization": f"Bearer {SUPABASE_API_KEY}",
