@@ -7,7 +7,7 @@ import requests
 # Supabase接続情報
 # -----------------------------------------------------------------
 SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
-SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1NTA5MTksImV4cCI6MjA2MTEyNjkxOX0.l-CxOBeAyh1mYcJYaZR8Jh9NryPFoWPiYwYB0sl4bc0"
+SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTU1MDkxOSwiZXhwIjoyMDYxMTI2OTE5fQ.Mb2UMHZJSYPcXDujxs4q0Dgvh7tXh38EJpPooqydkZs"
 SUPABASE_DB_URL = f"{SUPABASE_URL}/rest/v1/users" # public.users テーブルへのURL
 
 
@@ -37,16 +37,20 @@ def user_management(request):
         response = requests.get(
             f"{SUPABASE_DB_URL}?select=id,name", 
             headers={
-                "apikey": SUPABASE_API_KEY,
+                "apikey": SUPABASE_API_KEY, 
                 "Authorization": f"Bearer {SUPABASE_API_KEY}",
             }
         )
-        response.raise_for_status() # HTTPエラーチェック
+        response.raise_for_status() 
         
-        users_list = response.json() # JSONレスポンスをリストとして取得
+        users_list = response.json()
         
     except requests.exceptions.RequestException as e:
         print(f"Supabaseからのデータ取得中にエラーが発生しました: {e}")
+        try:
+            print(f"Supabase詳細エラー: {response.text}") # サーバーから返された具体的なエラーメッセージ
+        except:
+            pass
         users_list = []
         
     context = {
