@@ -1,15 +1,10 @@
 # C:\Admin\urls.py
 
 from django.urls import path
-from . import views # Admin/views.py をインポート
+from . import admin_top
 
 urlpatterns = [
-    # /admin/top/ にアクセス
-    path('top/', views.admin_top, name='admin_top'), 
-    
-    # /admin/users/ にアクセス
-    path('users/', views.user_management, name='user_management'),
-    
-    # /admin/prompts/ にアクセス
-    path('prompts/', views.prompt_management, name='prompt_management'),
+
+    path('users/', admin_top.user_management, name='admin_users'),
+    path('prompts/', admin_top.prompt_management, name='admin_prompts'),
 ]
