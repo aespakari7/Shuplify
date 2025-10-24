@@ -6,7 +6,6 @@ from . import Login
 from . import Top
 from . import AI_ES
 from . import AI_email
-from . import admin_top
 from django.views.generic import TemplateView
 
 urlpatterns = [
@@ -20,5 +19,4 @@ urlpatterns = [
     path('calendar-detail/<int:pk>/', Top.event_detail, name='calendar_detail'), # /main/auth/calendar-detail/ で実行される
     path('delete-event/<int:event_id>/', Top.delete_event, name='delete_event'),# /main/auth/delete-event/ で実行される
     path('edit-event/<int:event_id>/', Top.edit_event, name='edit_event'), # /main/auth/edit-event/ で実行される
-    path('admin/top/', admin_top.admin_top, name='admin_top'),
 ]
