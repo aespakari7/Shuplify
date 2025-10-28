@@ -6,12 +6,14 @@
 <h1>{{ message }}</h1>
 
 <hr>
-<h2>管理者ユーザー一覧 (is_admin_flag = 1)</h2>
-<ul>
+<h2>管理者ユーザー 一覧</h2>
+
+<input type="text" id="adminSearch" onkeyup="filterUsers('adminSearch', 'adminList')" placeholder="名前 または ID で検索...">
+
+<ul id="adminList">
 {% for user in admin_users %}
-    <li>
-         管理者  {{ user.name }} (ID: {{ user.user_id }}) - 
-        
+    <li data-name="{{ user.name|lower }}" data-id="{{ user.user_id }}">
+        管理者 {{ user.name }} (ID: {{ user.user_id }}) - 
         <span style="color: grey;">(削除不可)</span>
     </li>
 {% empty %}
@@ -20,10 +22,13 @@
 </ul>
 
 <hr>
-<h2>一般ユーザー一覧</h2>
-<ul>
+<h2>一般ユーザー 一覧</h2>
+
+<input type="text" id="generalSearch" onkeyup="filterUsers('generalSearch', 'generalList')" placeholder="名前 または ID で検索...">
+
+<ul id="generalList">
 {% for user in general_users %}
-    <li>
+    <li data-name="{{ user.name|lower }}" data-id="{{ user.user_id }}">
         {{ user.name }} (ID: {{ user.user_id }}) - 
         
         <form method="post" action="{% url 'delete_user' %}" style="display:inline;">
@@ -36,3 +41,26 @@
     <li>一般ユーザーが見つかりませんでした。</li>
 {% endfor %}
 </ul>
+
+<script>
+    function filterUsers(inputId, listId) {
+        const input = document.getElementById(inputId);
+        const filter = input.value.toLowerCase(); // 検索キーワード
+        const ul = document.getElementById(listId);
+        const li = ul.getElementsByTagName('li');
+
+        for (let i = 0; i < li.length; i++) {
+            const name = li[i].getAttribute('data-name');
+            const id = li[i].getAttribute('data-id'); // IDを取得
+            
+            if (
+                (name && name.indexOf(filter) > -1) ||
+                (id && id.indexOf(filter) > -1)
+            ) {
+                li[i].style.display = ""; // 表示
+            } else {
+                li[i].style.display = "none"; // 非表示
+            }
+        }
+    }
+</script>
