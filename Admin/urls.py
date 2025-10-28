@@ -7,4 +7,6 @@ urlpatterns = [
     path('top/', admin_top.admin_top, name='admin_top'),
     path('users/', admin_top.user_management, name='admin_users'),
     path('prompts/', admin_top.prompt_management, name='admin_prompts'),
+
+    path('users/delete/', admin_top.delete_user, name='delete_user'),
 ]
