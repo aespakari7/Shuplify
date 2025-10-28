@@ -6,9 +6,23 @@
 <h1>{{ message }}</h1>
 
 <hr>
-<h2>ユーザー一覧</h2>
+<h2>管理者ユーザー一覧 (is_admin_flag = 1)</h2>
 <ul>
-{% for user in users_list %}
+{% for user in admin_users %}
+    <li>
+         管理者  {{ user.name }} (ID: {{ user.user_id }}) - 
+        
+        <span style="color: grey;">(削除不可)</span>
+    </li>
+{% empty %}
+    <li>管理者ユーザーはいません。</li>
+{% endfor %}
+</ul>
+
+<hr>
+<h2>一般ユーザー一覧</h2>
+<ul>
+{% for user in general_users %}
     <li>
         {{ user.name }} (ID: {{ user.user_id }}) - 
         
@@ -18,9 +32,7 @@
             <button type="submit" onclick="return confirm('本当に {{ user.name }} を削除（垢BAN）しますか？');">削除（垢BAN）</button>
         </form>
     </li>
+{% empty %}
+    <li>一般ユーザーが見つかりませんでした。</li>
 {% endfor %}
-</ul>
-{% if not users_list %}
-    <li>ユーザーが見つかりませんでした。Supabaseの接続を確認してください。</li>
-{% endif %}
 </ul>

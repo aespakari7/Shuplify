@@ -30,12 +30,14 @@ def user_management(request):
     """
     Supabaseの 'users' テーブルからユーザー一覧を取得し、表示する。
     """
-    users_list = []
+    all_users = []
+    admin_users_list = []  # 管理者リスト
+    general_users_list = [] # 一般ユーザーリスト
     
     try:
         # requests.get を使用してデータを取得 (idとnameのみを選択)
         response = requests.get(
-            f"{SUPABASE_DB_URL}?select=user_id,name", 
+            f"{SUPABASE_DB_URL}?select=user_id,name,is_admin_flag", 
             headers={
                 "apikey": SUPABASE_API_KEY, 
                 "Authorization": f"Bearer {SUPABASE_API_KEY}",
@@ -43,8 +45,16 @@ def user_management(request):
         )
         response.raise_for_status() 
         
-        users_list = response.json()
+        all_users = response.json()
         
+        for user in all_users:
+            # Supabaseの真偽値は数値(1/0)またはブール値(true/false)で返されます。
+            # ここでは数値の 1 を管理者と仮定します。
+            if user.get('is_admin_flag') == 1 or user.get('is_admin_flag') is True:
+                admin_users_list.append(user)
+            else:
+                general_users_list.append(user)
+
     except requests.exceptions.RequestException as e:
         print(f"Supabaseからのデータ取得中にエラーが発生しました: {e}")
         try:
@@ -55,7 +65,8 @@ def user_management(request):
         
     context = {
         'message': 'ユーザー管理画面',
-        'users_list': users_list,
+        'admin_users': admin_users_list,     # 管理者ユーザーリスト
+        'general_users': general_users_list, # 一般ユーザーリスト
         'user_management_url': 'admin_users',
         'prompt_management_url': 'admin_prompts',
     }
