@@ -10,24 +10,45 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseServerError, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 # import tempfile # 修正: 不要になるため削除
+import requests #☆追加
 
 # .env ファイルから環境変数を読み込む
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env'))
 
-# システムプロンプト (変更なし)
-SYSTEM_PROMPT_ES = """
-あなたは就活専門のキャリアアドバイザーです。
-ES（エントリーシート）の内容（入力テキストおよび添付画像）を添削し、より魅力的になるように具体的にアドバイスしてください。
+# -----------------------------------------------------------------
+# Supabase接続情報
+# -----------------------------------------------------------------
+SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
+SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTU1MDkxOSwiZXhwIjoyMDYxMTI2OTE5fQ.Mb2UMHZJSYPcXDujxs4q0Dgvh7tXh38EJpPooqydkZs"
+SUPABASE_DB_URL = f"{SUPABASE_URL}/rest/v1/prompts"
 
-【出力形式の原則】
-1. **Markdownを使用**し、見出し、箇条書き、太字を活用して、添削結果を視覚的に分かりやすく構成してください。
-2. 添削内容は以下の3つの主要なセクションで構成してください。
-    - **【評価と総評】**: ESの強みと改善点を簡潔に総括する。
-    - **【具体的な改善案】**: 具体的な言葉遣い、エピソードの構成、企業への貢献度に焦点を当てたアドバイスを箇条書きで提供する。
-    - **【次のステップ】**: 添削後の質問や検討事項を提示し、より良いESを作成するための指針を与える。
-3. 表現の多様性を保つため、同じ言葉（漢字、ひらがな、カタカナを問わず）を二回連続で使用することは避けてください。
-"""
-
+#☆システムプロンプト取得関数
+def get_prompt_content(prompt_title):
+    """
+    Supabaseの'prompts'テーブルから指定されたタイトルのプロンプト内容を取得する。
+    """
+    try:
+        response = requests.get(
+            f"{SUPABASE_DB_URL}?title=eq.{prompt_title}&select=content", 
+            headers={
+                "apikey": SUPABASE_API_KEY, 
+                "Authorization": f"Bearer {SUPABASE_API_KEY}",
+            }
+        )
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        if data and len(data) > 0 and 'content' in data[0]:
+            return data[0]['content']
+        
+        print(f"警告: タイトル '{prompt_title}' のプロンプトがデータベースに見つかりませんでした。")
+        return None
+        
+    except requests.exceptions.RequestException as e:
+        print(f"エラー: Supabaseからプロンプト取得中にエラーが発生しました: {e}")
+        return None
+    
 # 設定 (変更なし)
 generation_config = {
     "temperature": 0.5, 
@@ -56,6 +77,17 @@ def aies(request):
 
     genai.configure(api_key=API_KEY)
     
+    #☆データベースからシステムプロンプトを取得
+    db_system_prompt = get_prompt_content('ES添削用')
+    
+    if not db_system_prompt:
+        error_message = "サーバー設定エラー: 'ES添削用' のシステムプロンプトがデータベースに見つかりませんでした。"
+        print(f"ERROR: {error_message}")
+        if request.method == 'POST':
+            return JsonResponse({"error": error_message}, status=500)
+        else:
+            return render(request, 'auth/AI_ES.html', {'error': error_message})
+        
     chat_history = request.session.get('chat_history_es', [])
 
     if request.method == 'GET':
@@ -111,7 +143,8 @@ def aies(request):
                 model_name="gemini-1.5-pro-latest", # (ファイル処理に強いモデル)
                 generation_config=generation_config,
                 safety_settings=safety_settings,
-                system_instruction=SYSTEM_PROMPT_ES
+                #☆変更
+                system_instruction=db_system_prompt
             )
             
             chat = model.start_chat(history=chat_history[:-1]) 
