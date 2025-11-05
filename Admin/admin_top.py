@@ -105,9 +105,81 @@ def delete_user(request):
 # プロンプト管理画面
 # -----------------------------------------------------------------
 def prompt_management(request):
+    # ES用とメール用のプロンプトタイトルを定義
+    PROMPT_TITLES = ['ES添削用', 'メール添削用']
+    
+    # POSTリクエスト（更新処理）
+    if request.method == 'POST':
+        prompt_title = request.POST.get('title')
+        new_content = request.POST.get('content')
+        
+        if prompt_title in PROMPT_TITLES and new_content is not None:
+            try:
+                # SupabaseにPATCHリクエストを送信してプロンプトを更新
+                update_response = requests.patch(
+                    f"{SUPABASE_DB_URL_PROMPTS}?title=eq.{prompt_title}",
+                    headers={
+                        "apikey": SUPABASE_API_KEY,
+                        "Authorization": f"Bearer {SUPABASE_API_KEY}",
+                        "Content-Type": "application/json",
+                        "Prefer": "return=representation", # 更新されたレコードを返す
+                    },
+                    json={"content": new_content}
+                )
+                update_response.raise_for_status()
+                
+                context = {'message': f"✅ '{prompt_title}' のプロンプトを更新しました。", 'success': True}
+                # 更新後、GET処理に進み最新のデータを取得
+            
+            except requests.exceptions.RequestException as e:
+                error_detail = update_response.text if 'update_response' in locals() else str(e)
+                print(f"Supabaseでのプロンプト更新中にエラーが発生しました: {error_detail}")
+                context = {'message': f"❌ 更新エラー: {error_detail}", 'error': True}
+                # エラーの場合は次のGET処理に進まず、エラーメッセージを表示
+                return render(request, 'Admin/admin_prompt.html', context)
+
+
+    # GETリクエスト（データ取得と表示）
+    
+    # 既存のプロンプトデータを取得
+    prompts_data = {}
+    
+    try:
+        # すべてのプロンプトデータを取得
+        response = requests.get(
+            f"{SUPABASE_DB_URL_PROMPTS}?select=title,content", 
+            headers={
+                "apikey": SUPABASE_API_KEY, 
+                "Authorization": f"Bearer {SUPABASE_API_KEY}",
+            }
+        )
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # 取得したデータをタイトルをキーとする辞書に変換
+        for item in data:
+            prompts_data[item['title']] = item['content']
+            
+    except requests.exceptions.RequestException as e:
+        error_detail = response.text if 'response' in locals() else str(e)
+        print(f"Supabaseからのプロンプト取得中にエラーが発生しました: {error_detail}")
+        context = {
+            'message': '❌ データ取得エラーが発生しました。', 
+            'error': True,
+            'user_management_url': 'admin_users',
+            'prompt_management_url': 'admin_prompts',
+        }
+        return render(request, 'Admin/admin_prompt.html', context)
+
+    
+    # テンプレートに渡すコンテキストを作成
     context = {
-        'message': 'プロンプト管理画面',
-        'prompts_list': ['プロンプト1', 'プロンプト2'],
+        'message': context.get('message', 'プロンプト管理画面'), # 更新メッセージを保持
+        'error': context.get('error', False),
+        'success': context.get('success', False),
+        'es_prompt': prompts_data.get('ES添削用', 'プロンプトがデータベースに見つかりません。'),
+        'email_prompt': prompts_data.get('メール添削用', 'プロンプトがデータベースに見つかりません。'),
         'user_management_url': 'admin_users',
         'prompt_management_url': 'admin_prompts',
     }
