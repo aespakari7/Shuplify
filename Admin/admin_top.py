@@ -8,8 +8,8 @@ import requests
 # -----------------------------------------------------------------
 SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
 SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTU1MDkxOSwiZXhwIjoyMDYxMTI2OTE5fQ.Mb2UMHZJSYPcXDujxs4q0Dgvh7tXh38EJpPooqydkZs"
-SUPABASE_DB_URL = f"{SUPABASE_URL}/rest/v1/users" # public.users テーブルへのURL
-
+SUPABASE_DB_URL_USERS = f"{SUPABASE_URL}/rest/v1/users" 
+SUPABASE_DB_URL_PROMPTS = f"{SUPABASE_URL}/rest/v1/prompts"
 
 # -----------------------------------------------------------------
 # 管理者トップ画面
@@ -37,7 +37,7 @@ def user_management(request):
     try:
         # requests.get を使用してデータを取得 (idとnameのみを選択)
         response = requests.get(
-            f"{SUPABASE_DB_URL}?select=user_id,name,is_admin_flag", 
+            f"{SUPABASE_DB_URL_USERS}?select=user_id,name,is_admin_flag", 
             headers={
                 "apikey": SUPABASE_API_KEY, 
                 "Authorization": f"Bearer {SUPABASE_API_KEY}",
@@ -82,7 +82,7 @@ def delete_user(request):
             try:
                 # requests.delete を使用してレコードを削除
                 delete_response = requests.delete(
-                    f"{SUPABASE_DB_URL}?user_id=eq.{user_id}", # idがuser_idに等しいレコードを削除
+                    f"{SUPABASE_DB_URL_USERS}?user_id=eq.{user_id}", # idがuser_idに等しいレコードを削除
                     headers={
                         "apikey": SUPABASE_API_KEY,
                         "Authorization": f"Bearer {SUPABASE_API_KEY}",
