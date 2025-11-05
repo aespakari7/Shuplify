@@ -1,66 +1,109 @@
-<nav>
-    <a href="{% url 'admin_users' %}">ユーザー管理</a> | 
-    <a href="{% url 'admin_prompts' %}">プロンプト管理へ</a> | 
-</nav>
-
-<h1>{{ message }}</h1>
-
-<hr>
-<h2>管理者ユーザー 一覧</h2>
-
-<input type="text" id="adminSearch" onkeyup="filterUsers('adminSearch', 'adminList')" placeholder="名前 または ID で検索...">
-
-<ul id="adminList">
-{% for user in admin_users %}
-    <li data-name="{{ user.name|lower }}" data-id="{{ user.user_id }}">
-        管理者 {{ user.name }} (ID: {{ user.user_id }}) - 
-        <span style="color: grey;">(削除不可)</span>
-    </li>
-{% empty %}
-    <li>管理者ユーザーはいません。</li>
-{% endfor %}
-</ul>
-
-<hr>
-<h2>一般ユーザー 一覧</h2>
-
-<input type="text" id="generalSearch" onkeyup="filterUsers('generalSearch', 'generalList')" placeholder="名前 または ID で検索...">
-
-<ul id="generalList">
-{% for user in general_users %}
-    <li data-name="{{ user.name|lower }}" data-id="{{ user.user_id }}">
-        {{ user.name }} (ID: {{ user.user_id }}) - 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ユーザー管理</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        /* ユーザーリスト用に form-section と同等のスタイルを適用 */
+        .list-section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
         
-        <form method="post" action="{% url 'delete_user' %}" style="display:inline;">
-            {% csrf_token %}
-            <input type="hidden" name="user_id" value="{{ user.user_id }}">
-            <button type="submit" onclick="return confirm('本当に {{ user.name }} を削除（垢BAN）しますか？');">削除（垢BAN）</button>
-        </form>
-    </li>
-{% empty %}
-    <li>一般ユーザーが見つかりませんでした。</li>
-{% endfor %}
-</ul>
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        
+        /* 検索ボックスのスタイル */
+        input[type="text"] { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; }
+        
+        button { padding: 5px 10px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+        button:hover { background-color: #c82333; }
+        .clear { clear: both; }
+        .message-success { color: green; font-weight: bold; margin-bottom: 15px; }
+        .message-error { color: red; font-weight: bold; margin-bottom: 15px; }
+        
+        nav a { margin-right: 15px; text-decoration: none; color: #007bff; }
+        nav { margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
 
-<script>
-    function filterUsers(inputId, listId) {
-        const input = document.getElementById(inputId);
-        const filter = input.value.toLowerCase(); // 検索キーワード
-        const ul = document.getElementById(listId);
-        const li = ul.getElementsByTagName('li');
+        /* リストのスタイル調整 */
+        ul { list-style: none; padding: 0; }
+        li { padding: 8px 0; border-bottom: 1px dotted #eee; display: flex; justify-content: space-between; align-items: center; }
+        li:last-child { border-bottom: none; }
+    </style>
+    </head>
+<body>
+    <div class="container">
+        
+        <nav>
+            <a href="{% url 'admin_top' %}">管理者TOPへ</a> | 
+            <a href="{% url 'admin_prompts' %}">プロンプト管理へ</a>
+        </nav>
 
-        for (let i = 0; i < li.length; i++) {
-            const name = li[i].getAttribute('data-name');
-            const id = li[i].getAttribute('data-id'); // IDを取得
-            
-            if (
-                (name && name.indexOf(filter) > -1) ||
-                (id && id.indexOf(filter) > -1)
-            ) {
-                li[i].style.display = ""; // 表示
-            } else {
-                li[i].style.display = "none"; // 非表示
+        <h1>ユーザー管理画面</h1>
+
+        <hr>
+        
+        <h2>管理者ユーザー 一覧</h2>
+        <div class="list-section">
+            <input type="text" id="adminSearch" onkeyup="filterUsers('adminSearch', 'adminList')" placeholder="名前 または ID で検索...">
+
+            <ul id="adminList">
+            {% for user in admin_users %}
+                <li data-name="{{ user.name|lower }}" data-id="{{ user.user_id }}">
+                    <span>管理者 {{ user.name }} (ID: {{ user.user_id }})</span> 
+                    <span style="color: grey;">(削除不可)</span>
+                </li>
+            {% empty %}
+                <li>管理者ユーザーはいません。</li>
+            {% endfor %}
+            </ul>
+        </div>
+        
+        <hr>
+        
+        <h2>一般ユーザー 一覧</h2>
+        <div class="list-section">
+            <input type="text" id="generalSearch" onkeyup="filterUsers('generalSearch', 'generalList')" placeholder="名前 または ID で検索...">
+
+            <ul id="generalList">
+            {% for user in general_users %}
+                <li data-name="{{ user.name|lower }}" data-id="{{ user.user_id }}">
+                    <span>{{ user.name }} (ID: {{ user.user_id }})</span>
+                    
+                    <form method="post" action="{% url 'delete_user' %}" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                        <button type="submit" onclick="return confirm('本当に {{ user.name }} を削除（垢BAN）しますか？');">削除（垢BAN）</button>
+                    </form>
+                </li>
+            {% empty %}
+                <li>一般ユーザーが見つかりませんでした。</li>
+            {% endfor %}
+            </ul>
+        </div>
+
+    </div>
+    
+    <script>
+        function filterUsers(inputId, listId) {
+            const input = document.getElementById(inputId);
+            const filter = input.value.toLowerCase(); // 検索キーワード
+            const ul = document.getElementById(listId);
+            const li = ul.getElementsByTagName('li');
+
+            for (let i = 0; i < li.length; i++) {
+                const name = li[i].getAttribute('data-name');
+                const id = li[i].getAttribute('data-id'); // IDを取得
+                
+                if (
+                    (name && name.indexOf(filter) > -1) ||
+                    (id && id.indexOf(filter) > -1)
+                ) {
+                    li[i].style.display = ""; // 表示
+                } else {
+                    li[i].style.display = "none"; // 非表示
+                }
             }
         }
-    }
-</script>
+    </script>
+</body>
+</html>
