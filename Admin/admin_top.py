@@ -105,6 +105,7 @@ def delete_user(request):
 # プロンプト管理画面
 # -----------------------------------------------------------------
 def prompt_management(request):
+    context = {}
     # ES用とメール用のプロンプトタイトルを定義
     PROMPT_TITLES = ['ES添削用', 'メール添削用']
     
@@ -175,7 +176,7 @@ def prompt_management(request):
     
     # テンプレートに渡すコンテキストを作成
     context = {
-        'message': context.get('message', 'プロンプト管理画面'), # 更新メッセージを保持
+        'message': context.get('message', 'プロンプト管理画面'), 
         'error': context.get('error', False),
         'success': context.get('success', False),
         'es_prompt': prompts_data.get('ES添削用', 'プロンプトがデータベースに見つかりません。'),
