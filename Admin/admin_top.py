@@ -176,7 +176,7 @@ def prompt_management(request):
     
     # テンプレートに渡すコンテキストを作成
     context = {
-        'message': context.get('message', 'プロンプト管理画面'), 
+        'message': context.get('message', '変更なし'), 
         'error': context.get('error', False),
         'success': context.get('success', False),
         'es_prompt': prompts_data.get('ES添削用', 'プロンプトがデータベースに見つかりません。'),

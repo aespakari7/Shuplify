@@ -16,7 +16,7 @@
         .message-success { color: green; font-weight: bold; margin-bottom: 15px; }
         .message-error { color: red; font-weight: bold; margin-bottom: 15px; }
         nav a { margin-right: 15px; text-decoration: none; color: #007bff; }
-        nav { margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        nav { margin-bottom: 20px; padding-bottom: 10px;}
     </style>
 </head>
 <body>
@@ -27,6 +27,8 @@
             <a href="{% url 'admin_top' %}">管理者TOPへ</a>
             <a href="{% url user_management_url %}">ユーザー管理へ</a>
         </nav>
+
+        <hr>
 
         {% if message %}
             {% if success %}
@@ -50,6 +52,8 @@
             </form>
         </div>
 
+        <hr>
+        
         <h2>メール添削用プロンプトの編集</h2>
         <div class="form-section">
             <form method="POST" action="{% url 'admin_prompts' %}">
