@@ -3,13 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <title>管理者トップ</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        
+        /* 管理メニューリストのスタイル */
+        ul { list-style: none; padding: 0; margin-top: 20px; }
+        li { margin-bottom: 15px; }
+
+        /* リンクをボタン風に装飾 */
+        a {
+            display: block; 
+            padding: 15px 20px;
+            background-color: #f0f0f0; /* 薄い背景 */
+            color: #007bff; /* 青色の文字 */
+            text-decoration: none;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+        
+        a:hover {
+            background-color: #e0e0e0; /* ホバーで少し濃く */
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ message }}</h1>
-    <p>管理メニュー:</p>
-    <ul>
-        <li><a href="{% url user_management_url %}">ユーザー管理</a></li>
-        <li><a href="{% url prompt_management_url %}">プロンプト管理</a></li>
-    </ul>
+    <div class="container">
+        <h1>{{ message }}</h1>
+        <p>管理メニュー:</p>
+        <ul>
+            <li><a href="{% url user_management_url %}">ユーザー管理</a></li>
+            <li><a href="{% url prompt_management_url %}">プロンプト管理</a></li>
+        </ul>
+    </div>
 </body>
 </html>
