@@ -7,6 +7,7 @@
   <body>
     <h1>ログイン</h1>
 
+    <!-- ✅ action は login に変更 -->
     <form action="{% url 'top' %}" method="post">
       {% csrf_token %}
       <p>
