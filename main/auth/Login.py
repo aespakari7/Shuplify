@@ -5,13 +5,9 @@ SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
 SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1NTA5MTksImV4cCI6MjA2MTEyNjkxOX0.l-CxOBeAyh1mYcJYaZR8Jh9NryPFoWPiYwYB0sl4bc0"
 SUPABASE_LOGIN_URL = f"{SUPABASE_URL}/auth/v1/token?grant_type=password"
 
-def get_translated_error_message(e):
-    try:
-        error_json = e.response.json()
-    except ValueError:
-        error_json = {}
 
-    msg = error_json.get("msg", error_json.get("message", error_json.get("error", str(e)))).lower()
+def get_translated_error_message(error_json):
+    msg = str(error_json.get("msg") or error_json.get("message") or error_json.get("error", "")).lower()
 
     if "invalid login credentials" in msg:
         return "メールアドレスまたはパスワードが間違っています。"
@@ -41,21 +37,22 @@ def login(request):
                 },
                 json={"email": email, "password": password}
             )
-            response.raise_for_status()
 
-            # ✅ Supabaseからのレスポンスを取得
+            # ✅ ログイン失敗（401など）の場合
+            if response.status_code != 200:
+                try:
+                    error_json = response.json()
+                except ValueError:
+                    error_json = {}
+                return render(request, "auth/login.html", {"message": get_translated_error_message(error_json)})
+
+            # ✅ 成功した場合のみトップへ
             data = response.json()
-
-            # ✅ セッションにユーザー情報を保存
             request.session["user"] = {
                 "email": email,
                 "access_token": data.get("access_token")
             }
-
             return redirect("top")
-
-        except requests.exceptions.HTTPError as e:
-            return render(request, "auth/login.html", {"message": get_translated_error_message(e)})
 
         except requests.exceptions.RequestException as e:
             return render(request, "auth/login.html", {"message": f"ネットワークエラー：{e}"})
