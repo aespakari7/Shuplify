@@ -119,7 +119,7 @@ def aies(request):
 
                 # 修正: types.Blob を作成して parts に追加
                 # これでファイルデータをリクエストに直接埋め込む
-                parts.append(types.Part.from_bytesb(
+                parts.append(types.Part.from_bytes(
                     mime_type=mime_type,
                     data=file_bytes
                 ))
