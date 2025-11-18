@@ -111,6 +111,9 @@ def aies(request):
             # --- ファイル処理 (Blob を使用) ---
             if file_data_base64 and mime_type:
                 
+                #　★追加：　PDF以外ファイルを拒否
+                if mime_type != 'application/pdf':
+                    return HttpResponseBadRequest("サポートされていないファイル形式です。PDFファイルのみをアップロードしてください。")
                 try:
                     # Base64をデコードしてバイトデータを取得
                     file_bytes = base64.b64decode(file_data_base64)
@@ -129,7 +132,7 @@ def aies(request):
 
                 if not user_message:
                     user_message = f"この添付ファイル（{mime_type}）の内容を添削してください。"
-                
+                #チャット履歴には添付ファイル情報とユーザーメッセージの記録
                 chat_history.append({"role": "user", "parts": [f"[ファイル添付: {mime_type}] {user_message}"]})
             
             else:
@@ -147,10 +150,13 @@ def aies(request):
                 #☆変更
                 system_instruction=db_system_prompt
             )
-            
-            chat = model.start_chat(history=chat_history[:-1]) 
+            #過去のチャット履歴を使用してチャットを開始
+            chat = model.start_chat(history=chat_history[:-1])
+
+            #新しいメッセージ(テキストとBlob)を送信
             response = chat.send_message(parts)
             
+            #レスポンスを履歴に追加
             chat_history.append({"role": "model", "parts": [response.text]})
             request.session['chat_history_es'] = chat_history
             request.session.modified = True
