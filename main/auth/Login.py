@@ -46,12 +46,19 @@ def login(request):
                     error_json = {}
                 return render(request, "auth/login.html", {"message": get_translated_error_message(error_json)})
 
-            # ✅ 成功した場合のみトップへ
+            # ✅ 成功した場合、認証情報とユーザーIDをセッションに保存しトップへ
             data = response.json()
+            user_data = data.get("user", {}) # Authレスポンスからユーザーオブジェクトを取得
+            
+            # Authが成功した場合、ユーザーIDとトークンをセッションに保存
             request.session["user"] = {
                 "email": email,
+                "user_id": user_data.get("id"),       # ⭐ ユーザーの一意のID (UUID) ⭐
                 "access_token": data.get("access_token")
             }
+            # セッションの変更を保存
+            request.session.modified = True 
+            
             return redirect("top")
 
         except requests.exceptions.RequestException as e:
