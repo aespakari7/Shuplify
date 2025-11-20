@@ -152,7 +152,7 @@ def signup(request):
                     "Prefer": "return=representation"
                 },
                 json={
-                    "id": user_id, 
+                    "user_id": user_id, 
                     "email": email,
                     "name": name,
                     "password": combined_hash, 
