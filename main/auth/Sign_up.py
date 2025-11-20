@@ -98,14 +98,14 @@ def signup(request):
                 raise ValueError("Supabase AuthからユーザーIDを取得できませんでした。")
 
             # ---------------------------------------------------------
-            # 2. DB重複チェック (念の為) - Anon Keyのまま
+            # 2. DB重複チェック (念の為) - ⭐ Service Keyに変更 ⭐
             # ---------------------------------------------------------
             check_db_url = f"{SUPABASE_URL}/rest/v1/users?email=eq.{email}"
             check_db_response = requests.get(
                 check_db_url,
                 headers={
-                    "apikey": SUPABASE_API_KEY,
-                    "Authorization": f"Bearer {SUPABASE_API_KEY}",
+                    "apikey": SUPABASE_SERVICE_KEY, # ⭐ 修正 ⭐
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}", # ⭐ 修正 ⭐
                     "Content-Type": "application/json"
                 }
             )
