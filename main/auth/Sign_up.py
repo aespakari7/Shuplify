@@ -10,7 +10,11 @@ import os
 # 設定
 # -----------------------------------------------------------------
 SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
+# クライアント（ブラウザ）向け公開キー（Auth認証に使用）
 SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1NTA5MTksImV4cCI6MjA2MTEyNjkxOX0.l-CxOBeAyh1mYcJYaZR8Jh9NryPFoWPiYwYB0sl4bc0"
+# サーバー向け管理者キー（DB操作に使用）
+SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTU1MDkxOSwiZXhwIjoyMDYxMTI2OTE5fQ.Mb2UMHZJSYPcXDujxs4q0Dgvh7tXh38EJpPooqydkZs" # ⭐ 追加したService Key ⭐
+
 SUPABASE_SIGNUP_URL = f"{SUPABASE_URL}/auth/v1/signup"
 SUPABASE_DB_INSERT_URL = f"{SUPABASE_URL}/rest/v1/users" # public.users テーブルへのURL
 
@@ -70,13 +74,13 @@ def signup(request):
             return render(request, "auth/signup.html", {"message": "メールアドレス、パスワード、名前は必須です。"})
         
         # ---------------------------------------------------------
-        # 1. Supabase Auth認証機能
+        # 1. Supabase Auth認証機能 (Anon Keyを使用)
         # ---------------------------------------------------------
         try:
             auth_response = requests.post(
                 SUPABASE_SIGNUP_URL,
                 headers={
-                    "apikey": SUPABASE_API_KEY,
+                    "apikey": SUPABASE_API_KEY, # AuthはAnon KeyでOK
                     "Content-Type": "application/json"
                 },
                 json={
@@ -88,16 +92,13 @@ def signup(request):
 
             # ⭐ ユーザーIDの取得 ⭐
             auth_data = auth_response.json()
-            
-            # ルートレベルからIDを直接取得する
             user_id = auth_data.get("id") 
 
             if not user_id:
-                # IDが取得できない場合は処理を中止
                 raise ValueError("Supabase AuthからユーザーIDを取得できませんでした。")
 
             # ---------------------------------------------------------
-            # 2. DB重複チェック (念の為)
+            # 2. DB重複チェック (念の為) - Anon Keyのまま
             # ---------------------------------------------------------
             check_db_url = f"{SUPABASE_URL}/rest/v1/users?email=eq.{email}"
             check_db_response = requests.get(
@@ -136,26 +137,25 @@ def signup(request):
             iterations
         )
         
-        # ハッシュ値、ソルト、イテレーション回数を結合して保存
         combined_hash = f"pbkdf2_sha256${iterations}${salt.hex()}${hashed_password_bytes.hex()}"
 
         # ---------------------------------------------------------
-        # 4. Supabaseのusersテーブルに情報を追加
+        # 4. Supabaseのusersテーブルに情報を追加 (Service Role Keyを使用)
         # ---------------------------------------------------------
         try:
             insert_response = requests.post(
                 SUPABASE_DB_INSERT_URL,
                 headers={
-                    "apikey": SUPABASE_API_KEY,
-                    "Authorization": f"Bearer {SUPABASE_API_KEY}",
+                    "apikey": SUPABASE_SERVICE_KEY, # ⭐ 修正：Service Role Keyを使用 ⭐
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}", # ⭐ 修正：Service Role Keyを使用 ⭐
                     "Content-Type": "application/json",
                     "Prefer": "return=representation"
                 },
                 json={
-                    "id": user_id,  # AuthのIDと紐付け
+                    "id": user_id, 
                     "email": email,
                     "name": name,
-                    "password": combined_hash, # ハッシュ化されたパスワード
+                    "password": combined_hash, 
                     "is_admin_flag": 0
                 }
             )
@@ -167,7 +167,6 @@ def signup(request):
             except ValueError:
                 created = None
 
-            # デバッグ出力
             print('Supabase insert response status:', insert_response.status_code)
             
             if created:
