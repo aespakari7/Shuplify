@@ -165,7 +165,7 @@
             // --- Core Send Message Logic ---
             // (修正: fileUrl の代わりに previewUrl を使う)
             function performAPICall(message, imageData, mimeType, previewUrl = null) {
-                
+
                 setSending(true);
                 
                 // (修正: imageData があるかどうかで判断)
@@ -223,16 +223,6 @@
                 }
 
                 if (file) {
-                    // ▼▼▼　修正点：　ファイルサイズ制限を追加　▼▼▼
-                    const MAXFILE_SIZE_MB = 8; //最大8MBに制限
-                    const MAXFILE_SIZE_BYTES = MAXFILE_SIZE_MB * 1024 * 1024;
-                    
-                    if (file.size > MAXFILE_SIZE_BYTES) {
-                        appendBot(`ファイルサイズが大きすぎます。${MAXFILE_SIZE_MB}MB以下のPDFファイルを使用してください。`);
-                        fileInput.value = '';
-                        fileStatus.textContent = '';
-                        return;
-                    }
 
                     //　▲▲▲　修正点：　ファイルサイズ制限を追加　▲▲▲
                     const reader = new FileReader();

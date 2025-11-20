@@ -11,6 +11,8 @@ from django.http import JsonResponse, HttpResponseServerError, HttpResponseBadRe
 from django.views.decorators.csrf import csrf_exempt
 # import tempfile # 修正: 不要になるため削除
 import requests #☆追加
+import tempfile #☆追加
+import uuid #☆追加
 
 # .env ファイルから環境変数を読み込む
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../.env'))
@@ -93,10 +95,12 @@ def aies(request):
     if request.method == 'GET':
         return render(request, 'auth/AI_ES.html', {'chat_history': chat_history})
 
-    # ▼▼▼ 修正: POST処理全体を修正 (upload_file をやめて Blob を使う) ▼▼▼
+    # ▼▼▼ 修正: POST処理全体を修正  ▼▼▼
     elif request.method == 'POST':
-        # uploaded_file や temp_filepath 変数は不要
-        
+       
+        upload_file = None  #クリーンアップのためにファイル参照を保持
+        temp_file_path = None 
+
         try:
             data = json.loads(request.body)
             user_message = data.get('message', '').strip()
@@ -104,7 +108,7 @@ def aies(request):
             mime_type = data.get('mimeType')
 
             if not user_message and not file_data_base64:
-                return HttpResponseBadRequest("メッセージまたは画像が提供されていません。")
+                return HttpResponseBadRequest("メッセージまたはファイルが提供されていません。")
 
             parts = []
             
@@ -119,19 +123,25 @@ def aies(request):
                     file_bytes = base64.b64decode(file_data_base64)
                 except (base64.binascii.Error, ValueError) as e:
                     return HttpResponseBadRequest(f"無効なBase64データ形式です: {e}")
+                #Base64データから一時のファイルを作成
+                ext = '.pdf' if mime_type == 'application/pdf' else '.dat'
+                temp_filepath = os.path.join(tempfile.gettempdir(),str(uuid.uuid4()) + ext)
+                with open(temp_filepath, 'wb') as f:
+                    f.write(file_bytes)
 
-                # 修正: types.Blob を作成して parts に追加
-                # これでファイルデータをリクエストに直接埋め込む
-                image_blob = types.Blob(
-                    mime_type=mime_type,
-                    data=file_bytes
-                )
-                parts.append(image_blob)
+                #一時ファイルをGemini　API　のサービスにアップロード
+                print(f"DEBUG: uploading file: {temp_filepath}...")
+                # upload_file はファイルを読み取り、Gemini_file_APIのエンドポイントにアップロードし、Fileオブジェクトを返す
+                uploaded_file = genai.upload_file(file_path=temp_filepath)
+                print(f"DEBUG: upload success, file name: {uploaded_file.name}")
+
+                parts.append(uploaded_file)
                 
                 # 修正: tempfile, upload_file, os.unlink の処理はすべて不要
 
                 if not user_message:
                     user_message = f"この添付ファイル（{mime_type}）の内容を添削してください。"
+
                 #チャット履歴には添付ファイル情報とユーザーメッセージの記録
                 chat_history.append({"role": "user", "parts": [f"[ファイル添付: {mime_type}] {user_message}"]})
             
@@ -153,7 +163,7 @@ def aies(request):
             #過去のチャット履歴を使用してチャットを開始
             chat = model.start_chat(history=chat_history[:-1])
 
-            #新しいメッセージ(テキストとBlob)を送信
+            #新しいメッセージ(テキストとアップロードファイル)を送信
             response = chat.send_message(parts)
             
             #レスポンスを履歴に追加
@@ -172,8 +182,24 @@ def aies(request):
             return JsonResponse({"error": "AIモデルの呼び出し中にエラーが発生しました。"}, status=500)
         
         finally:
-            # 修正: upload_file を使っていないので、クリーンアップは不要
-            # (ログに出ていた 'クリーンアップ: ...' の処理も不要になる)
+            #　★重要：　アップロードした一時ファイルとGemini上のファイルをクリーンアップ
+
+            #1.Gemini_File_API上のファイルを削除
+            if uploaded_file:
+                try:
+                    print(f"DEBUG: deleting uploaded file: {uploaded_file.name}")
+                    genai.delete_file(name=uploaded_file.name)
+                except Exception as e:
+                    print(f"WARNING: Failed to delete Gemini file {uploaded_file.name}: {e}")
+
+            #2.サーバー上の一時ファイルを削除
+            if temp_filepath and os.path.exists(temp_filepath):
+                try:
+                    os.unlink(temp_filepath)
+                    pprint(f"DEBUG: local_temp_file deleted: {temp_filepath}")
+                except Exception as e:
+                    print(f"WARNING: Failed to delete local temp file {temp_filepath}: {e}")
+
             pass
     # ▲▲▲ 修正 ▲▲▲
             
