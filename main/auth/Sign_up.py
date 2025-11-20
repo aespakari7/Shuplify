@@ -4,6 +4,9 @@ import requests
 from django.shortcuts import render, redirect 
 from django.views.decorators.csrf import csrf_exempt
 
+import hashlib  # ハッシュ化のためにインポート
+import os       # ランダムなソルト生成のためにインポート
+
 SUPABASE_URL = "https://uzoblakkftugdweloxku.supabase.co"
 SUPABASE_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV6b2JsYWtrZnR1Z2R3ZWxveGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1NTA5MTksImV4cCI6MjA2MTEyNjkxOX0.l-CxOBeAyh1mYcJYaZR8Jh9NryPFoWPiYwYB0sl4bc0"
 SUPABASE_SIGNUP_URL = f"{SUPABASE_URL}/auth/v1/signup"
@@ -75,10 +78,18 @@ def signup(request):
                     "password": password,
                 }
             )
-            # Authへのリクエストが200番台でなかったらエラーを発生させる
             auth_response.raise_for_status()
 
-# Auth認証が成功した場合でも、public.usersテーブルに既にメールアドレスが存在するかチェック
+            # ⭐ ユーザーIDの取得 ⭐
+            auth_data = auth_response.json()
+            # Auth登録成功時のレスポンス構造から、userオブジェクト内のIDを取得
+            user_id = auth_data.get("user", {}).get("id") 
+            
+            if not user_id:
+                 # IDが取得できない場合は処理を中止 (非常に稀)
+                 raise ValueError("Supabase AuthからユーザーIDを取得できませんでした。")
+
+            # Auth認証が成功した場合でも、public.usersテーブルに既にメールアドレスが存在するかチェック
             # これは、Supabase Authが既存ユーザーのサインアップ試行時にエラーを返さないセキュリティ挙動に対応するため
             check_db_url = f"{SUPABASE_URL}/rest/v1/users?email=eq.{email}"
             check_db_response = requests.get(
@@ -105,6 +116,19 @@ def signup(request):
             return render(request, "auth/signup.html", {"message": f"ネットワークエラー：{str(e)}"})
 
 
+#ここからハッシュ化
+        salt = os.urandom(16)
+        
+        iterations = 100000 
+        
+        hashed_password_bytes = hashlib.pbkdf2_hmac('sha256', 
+                                                    password.encode('utf-8'), 
+                                                    salt, 
+                                                    iterations)
+        
+        combined_hash = f"pbkdf2_sha256${iterations}${salt.hex()}${hashed_password_bytes.hex()}"
+#ここまでハッシュ化
+
 # Supabaseのusersテーブルに情報を追加
         try:
             insert_response = requests.post(
@@ -116,9 +140,10 @@ def signup(request):
                     "Prefer": "return=representation"
                 },
                 json={
+                    "id": user_id,
                     "email": email,
                     "name": name,
-                    "password": password,
+                    "password": combined_hash,
                     "is_admin_flag": 0
                 }
             )
