@@ -98,7 +98,7 @@ def aies(request):
     # ▼▼▼ 修正: POST処理全体を修正  ▼▼▼
     elif request.method == 'POST':
        
-        upload_file = None  #クリーンアップのためにファイル参照を保持
+        uploaded_file = None  #クリーンアップのためにファイル参照を保持
         temp_file_path = None 
 
         try:
@@ -132,7 +132,7 @@ def aies(request):
                 #一時ファイルをGemini　API　のサービスにアップロード
                 print(f"DEBUG: uploading file: {temp_filepath}...")
                 # upload_file はファイルを読み取り、Gemini_file_APIのエンドポイントにアップロードし、Fileオブジェクトを返す
-                uploaded_file = genai.upload_file(file_path=temp_filepath)
+                uploaded_file = genai.upload_file(file=temp_filepath)
                 print(f"DEBUG: upload success, file name: {uploaded_file.name}")
 
                 parts.append(uploaded_file)
@@ -196,7 +196,7 @@ def aies(request):
             if temp_filepath and os.path.exists(temp_filepath):
                 try:
                     os.unlink(temp_filepath)
-                    pprint(f"DEBUG: local_temp_file deleted: {temp_filepath}")
+                    print(f"DEBUG: local_temp_file deleted: {temp_filepath}")
                 except Exception as e:
                     print(f"WARNING: Failed to delete local temp file {temp_filepath}: {e}")
 
