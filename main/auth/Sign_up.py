@@ -177,8 +177,14 @@ def signup(request):
             return redirect('confirm_email')
 
         except requests.exceptions.HTTPError as e:
-            display_message = get_translated_error_message(e, is_auth_error=False)
-            return render(request, "auth/signup.html", {"message": f"DB保存エラー：{display_message}"})
+            try:
+                raw_error = e.response.json()
+            except:
+                raw_error = e.response.text
+            
+            # コンソール（ターミナル）に出力
+            print(f"DEBUG - Supabase DB Insert Error: {raw_error}")
+            return render(request, "auth/signup.html", {"message": f"DB保存エラー(DEBUG): {raw_error}"})
         except requests.exceptions.RequestException as e:
             return render(request, "auth/signup.html", {"message": f"ネットワークエラー：{str(e)}"})
 
