@@ -92,9 +92,7 @@ def signup(request):
 
             # ⭐ ユーザーIDの取得 ⭐
             auth_data = auth_response.json()
-
-            user_data = auth_data.get("user")
-            user_id = user_data.get("id") if user_data else None
+            user_id = auth_data.get("id")
 
             if not user_id:
                 raise ValueError("Supabase AuthからユーザーIDを取得できませんでした。")
