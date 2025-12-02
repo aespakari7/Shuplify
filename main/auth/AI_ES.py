@@ -132,8 +132,8 @@ def aies(request):
                 #一時ファイルをGemini　API　のサービスにアップロード
                 print(f"DEBUG: uploading file: {temp_filepath}...")
                 # upload_file はファイルを読み取り、Gemini_file_APIのエンドポイントにアップロードし、Fileオブジェクトを返す
-                uploaded_file = genai.upload_file(file=temp_filepath)
-                print(f"DEBUG: upload success, file name: {uploaded_file.name}")
+                uploaded_file = genai.upload_file(temp_filepath)
+                print(f"DEBUG: upload success, file name: {(uploaded_file,'name', uploaded_file)}")
 
                 parts.append(uploaded_file)
                 
@@ -187,10 +187,12 @@ def aies(request):
             #1.Gemini_File_API上のファイルを削除
             if uploaded_file:
                 try:
-                    print(f"DEBUG: deleting uploaded file: {uploaded_file.name}")
-                    genai.delete_file(name=uploaded_file.name)
+                    gemini_file_name = getattr(uploaded_file, "name", None)
+                    print(f"DEBUG: deleting uploaded file: {gemini_file_name}")
+                    if gemini_file_name:
+                        genai.delete_file(gemini_file_name)
                 except Exception as e:
-                    print(f"WARNING: Failed to delete Gemini file {uploaded_file.name}: {e}")
+                    print(f"WARNING: Failed to delete Gemini file: {e}")
 
             #2.サーバー上の一時ファイルを削除
             if temp_filepath and os.path.exists(temp_filepath):
