@@ -4,46 +4,35 @@ from django.shortcuts import render, redirect, get_object_or_404
 from datetime import date, datetime, timedelta
 from .models import CalendarEvent
 from .utils import CalendarUtil
-from django.contrib.auth.models import User
+# from .models import CalendarEvent, UserProfile
+# from django.contrib.auth.models import User
 
 
 # -----------------------------------------------------------------
-# ヘルパー関数: ユーザーIDの取得（Supabase セッション対応版）
+# ヘルパー関数: ユーザーIDの取得（Supabase UUID対応版）
 # -----------------------------------------------------------------
 def get_current_user_id(request):
     """
-    Supabase ログイン（request.session["user"]）または
-    Django ログイン（request.user）から user_id を取得する。
+    Supabase セッションから 'uuid' 型の user_id を取得する。
     """
-
-    # ① Django のユーザーがログイン済み
-    if request.user.is_authenticated:
-        return request.user.id
-
-    # ② Supabase のセッション（request.session["user"]）がある場合
     supa = request.session.get("user")
+    
     if supa:
-        email = supa.get("email")
+        # Supabaseセッションには、Authが発行したユーザーのUUIDが含まれているはず
+        # Supabase AuthのJWTデコード後のJSON構造に依存
+        user_uuid = supa.get("id") # サインアップ処理でAuthから取得したキー
+        
+        # ログイン処理を実装していないため、セッションに 'id' がない場合は
+        # 'user'オブジェクトから取得を試みる (サインアップ時のレスポンス構造)
+        if not user_uuid and supa.get("user"):
+            user_uuid = supa["user"].get("id")
 
-        if email:
-            # Django の User で email を検索
-            try:
-                user = User.objects.get(email=email)
-                return user.id
-            except User.DoesNotExist:
-                # Supabase だけ存在 → Django 側に自動作成
-                user = User.objects.create(
-                    username=email,
-                    email=email,
-                )
-                return user.id
+        if user_uuid:
+            # 取得した UUID（文字列）を返す
+            return user_uuid
 
-    # ③ ログインしていない場合（デバッグ用）
-    try:
-        dummy = User.objects.first()
-        return dummy.id if dummy else None
-    except:
-        return None
+    # ログインしていない場合（UUIDを取得できない場合は None を返す）
+    return None
 
 
 # -----------------------------------------------------------------
