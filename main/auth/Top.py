@@ -7,6 +7,9 @@ from .utils import CalendarUtil
 # from .models import CalendarEvent, UserProfile
 # from django.contrib.auth.models import User
 
+import base64
+import json
+from django.conf import settings
 
 # -----------------------------------------------------------------
 # ヘルパー関数: ユーザーIDの取得（Supabase UUID対応版）
@@ -15,6 +18,13 @@ def get_current_user_id(request):
     """
     Supabase セッションから 'uuid' 型の user_id を取得する。
     """
+
+    # 'user_uuid' を優先的に確認
+    user_uuid = request.session.get("user_uuid")
+    if user_uuid:
+        return user_uuid
+    
+
     supa = request.session.get("user")
     
     if supa:
@@ -29,6 +39,7 @@ def get_current_user_id(request):
 
         if user_uuid:
             # 取得した UUID（文字列）を返す
+            request.session['user_uuid'] = user_uuid
             return user_uuid
 
     # ログインしていない場合（UUIDを取得できない場合は None を返す）
@@ -247,3 +258,52 @@ def edit_event(request, event_id):
     }
 
     return render(request, 'auth/edit_event.html', context)
+
+
+# -----------------------------------------------------------------
+# Supabase トークン処理
+# -----------------------------------------------------------------
+def process_supabase_token(request):
+    """
+    サインアップ/ログイン後のリダイレクトURLから
+    クエリパラメータとして送られてきたトークンをセッションに保存する。
+    """
+    
+    access_token = request.GET.get('access_token')
+    refresh_token = request.GET.get('refresh_token')
+
+    if access_token and refresh_token:
+        # トークンをセッションに保存
+        request.session['supabase_access_token'] = access_token
+        request.session['supabase_refresh_token'] = refresh_token
+        
+        # ユーザーID (UUID) もセッションに保存
+        try:
+            # JWT (access_token) のペイロード部分を取得しデコード
+            payload = access_token.split('.')[1]
+            
+            # base64のパディングを追加 (ペイロードの長さが4の倍数でない場合に対応)
+            payload_bytes = payload.encode('utf-8')
+            padded_payload = payload_bytes + b'=' * (4 - (len(payload_bytes) % 4))
+            
+            payload_data = base64.urlsafe_b64decode(padded_payload).decode('utf-8')
+            user_data = json.loads(payload_data)
+            
+            # SupabaseのユーザーUUIDは 'sub' クレームにある
+            user_uuid = user_data.get('sub') 
+            
+            # セッションに UUID を保存 (get_current_user_id で利用)
+            request.session['user_uuid'] = user_uuid
+            
+            # get_current_user_id が session["user"] を見ていたため、互換性のためにここにも保存
+            request.session['user'] = {'id': user_uuid, 'email': user_data.get('email')} 
+            
+        except Exception as e:
+            # デバッグ用のエラーメッセージを出力
+            print(f"DEBUG: Token decoding failed: {e}")
+
+        # トークン処理が完了したら、クリーンなトップページにリダイレクト
+        return redirect('top')
+    
+    # トークンがない場合や処理後のアクセスはトップへ
+    return redirect('top')

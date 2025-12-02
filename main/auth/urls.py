@@ -19,4 +19,5 @@ urlpatterns = [
     path('calendar-detail/<int:pk>/', Top.event_detail, name='calendar_detail'), # /main/auth/calendar-detail/ で実行される
     path('delete-event/<int:event_id>/', Top.delete_event, name='delete_event'),# /main/auth/delete-event/ で実行される
     path('edit-event/<int:event_id>/', Top.edit_event, name='edit_event'), # /main/auth/edit-event/ で実行される
+    path('auth/process_token/', Top.process_supabase_token, name='process_token'),
 ]

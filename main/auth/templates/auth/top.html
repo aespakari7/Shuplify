@@ -109,3 +109,20 @@
     </div>
 </body>
 </html>
+
+<script>
+    const hash = window.location.hash; // #access_token=... の部分を取得
+
+    if (hash) {
+        const params = hash.substring(1); // # を削除
+        
+        // トークン処理ビューのURL (Djangoのname='process_token'で定義)
+        const redirectUrl = "{% url 'process_token' %}" + "?" + params;
+
+        // URLからハッシュ部分を削除 (ユーザーにトークンを見せないため)
+        history.replaceState(null, null, window.location.pathname + window.location.search);
+
+        // トークン処理ビューにリダイレクト
+        window.location.replace(redirectUrl);
+    }
+</script>
