@@ -115,6 +115,11 @@ def top(request):
 def add_event(request):
 
     user_id = get_current_user_id(request)
+
+    # ⭐ ここを追加 ⭐
+    print(f"DEBUG: add_event called. user_id: {user_id}")
+    # ⭐ ここまで ⭐
+    
     if user_id is None:
         return redirect('top')
 
