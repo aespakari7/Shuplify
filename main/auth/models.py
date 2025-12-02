@@ -7,7 +7,7 @@ from django.db import models
 # ----------------------------------------------------
 class CalendarEvent(models.Model):
     calendar_id = models.AutoField(primary_key=True)
-    user_id = models.IntegerField(verbose_name="ユーザーID")
+    user_id = models.UUIDField(verbose_name="ユーザーID")
     title = models.CharField(max_length=255, verbose_name="タイトル")
     memo = models.TextField(blank=True, verbose_name="メモ")
     start_time = models.DateTimeField(verbose_name="開始日時")
