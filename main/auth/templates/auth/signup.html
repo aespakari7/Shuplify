@@ -6,17 +6,17 @@
     <h1>サインアップ</h1>
     <form action="{% url 'signup' %}" method="post">
         {% csrf_token %}
-        <p>mail：<br>
+        <p>メールアドレス<br>
             <input type="email" name="email" id="mail" required>
         </p>
-        <p>password：<br>
+        <p>パスワード<br>
             <input type="password" name="password" id="password" required>
         </p>
-        <p>username：<br>
+        <p>ユーザーネーム<br>
             <input type="text" name="name" id="username" required>
         </p>
         <p>
-        <button type="submit" id="signupbutton">signup</button>
+        <button type="submit" id="signupbutton">サインアップ</button>
         </p>
         {% if message %}
         <p>{{ message }}</p>
